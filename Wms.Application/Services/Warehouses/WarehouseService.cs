@@ -1,0 +1,288 @@
+﻿
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Wms.Application.DTOS.Warehouse;
+using Wms.Application.Interfaces.Services.Warehouse;
+using Wms.Domain.Entity.Warehouses;
+using Wms.Application.Services.Warehouses;
+using Wms.Infrastructure.Persistence.Context;
+
+
+namespace Wms.Application.Services.Warehouses
+{
+    public class WarehouseService : IWarehouseService
+    {
+        private readonly AppDbContext _db;
+
+
+        public WarehouseService(AppDbContext db)
+        {
+            _db = db;
+        }
+
+
+        public async Task<WarehouseDto> CreateAsync(WarehouseCreateDto dto)
+        {
+            // check duplicate code
+            var exists = await _db.Warehouses.AnyAsync(w => w.Code == dto.Code);
+            if (exists) throw new InvalidOperationException("Warehouse code already exists.");
+
+
+            var entity = new Warehouse
+            {
+                Code = dto.Code.Trim().ToUpperInvariant(),
+                Name = dto.Name.Trim(),
+                Address = dto.Address
+            };
+
+
+            _db.Warehouses.Add(entity);
+            await _db.SaveChangesAsync();
+
+
+            return Map(entity);
+        }
+
+
+        public async Task<WarehouseDto> UpdateAsync(WarehouseUpdateDto dto)
+        {
+            var entity = await _db.Warehouses.FindAsync(dto.Id);
+            if (entity == null) throw new KeyNotFoundException("Warehouse not found.");
+
+            // cập nhật code
+            if (!string.IsNullOrWhiteSpace(dto.Code))
+            {
+                var newCode = dto.Code.Trim().ToUpperInvariant();
+
+                if (newCode != entity.Code)
+                {
+                    // check duplicate
+                    var exists = await _db.Warehouses.AnyAsync(w => w.Code == newCode && w.Id != dto.Id);
+                    if (exists) throw new InvalidOperationException("Warehouse code already exists.");
+
+                    entity.Code = newCode;
+                }
+            }
+
+            // cập nhật name + address
+            entity.Name = dto.Name.Trim();
+            entity.Address = dto.Address;
+
+            if (dto.Status.HasValue) entity.Status = dto.Status.Value;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            return Map(entity);
+        }
+
+
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var entity = await _db.Warehouses.Include(w => w.Locations).FirstOrDefaultAsync(w => w.Id == id);
+            if (entity == null) return false;
+
+
+            // business rule: cannot delete if locations exist
+            if (entity.Locations != null && entity.Locations.Any()) throw new InvalidOperationException("Cannot delete a warehouse that still has locations.");
+
+
+            _db.Warehouses.Remove(entity);
+            await _db.SaveChangesAsync();
+            return true; 
+        }
+        public async Task<WarehouseDto> GetByIdAsync(Guid id)
+        {
+            var entity = await _db.Warehouses.Include(w => w.Locations).FirstOrDefaultAsync(w => w.Id == id);
+            if (entity == null) return null;
+            return Map(entity);
+        }
+
+
+        public async Task<(IEnumerable<WarehouseDto> Items, int Total)> QueryAsync(int page, int pageSize, string q, string sortBy, bool asc)
+        {
+            var query = _db.Warehouses.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var t = q.Trim();
+                query = query.Where(w => w.Name.Contains(t) || w.Code.Contains(t));
+            }
+
+
+            var total = await query.CountAsync();
+
+
+            // simple sorting
+            if (string.Equals(sortBy, "name", StringComparison.OrdinalIgnoreCase))
+                query = asc ? query.OrderBy(w => w.Name) : query.OrderByDescending(w => w.Name);
+            else
+                query = asc ? query.OrderBy(w => w.CreatedAt) : query.OrderByDescending(w => w.CreatedAt);
+
+
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (items.Select(Map), total);
+        }
+
+
+        public async Task LockAsync(Guid id, string reason = null)
+        {
+            var entity = await _db.Warehouses.FindAsync(id);
+            if (entity == null) throw new KeyNotFoundException("Warehouse not found.");
+            entity.Status = WarehouseStatus.Locked;
+            entity.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+
+
+        public async Task UnlockAsync(Guid id)
+        {
+            var entity = await _db.Warehouses.FindAsync(id);
+            if (entity == null) throw new KeyNotFoundException("Warehouse not found.");
+            entity.Status = WarehouseStatus.Active;
+            entity.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+        }
+
+
+        // Locations
+        public async Task<LocationDto> CreateLocationAsync(LocationCreateDto dto)
+        {
+            var wh = await _db.Warehouses.FindAsync(dto.WarehouseId);
+            if (wh == null) throw new KeyNotFoundException("Warehouse not found.");
+
+
+            // validate warehouse status
+            if (wh.Status == WarehouseStatus.Locked || wh.Status == WarehouseStatus.Maintenance)
+                throw new InvalidOperationException("Cannot create location while warehouse is locked or under maintenance.");
+
+
+            // validate format
+            if (!LocationCodeValidator.IsValid(dto.Code))
+                throw new InvalidOperationException("Location code invalid. Expected pattern like A1-01-03.");
+
+
+            // duplicate check
+            var dup = await _db.Locations.AnyAsync(l => l.WarehouseId == dto.WarehouseId && l.Code == dto.Code);
+            if (dup) throw new InvalidOperationException("Location code already exists in warehouse.");
+
+
+            var entity = new Location
+            {
+                WarehouseId = dto.WarehouseId,
+                Code = dto.Code.Trim().ToUpperInvariant(),
+                Description = dto.Description
+            };
+
+
+            _db.Locations.Add(entity);
+            await _db.SaveChangesAsync();
+            return Map(entity);
+        }
+
+
+        public async Task<LocationDto> UpdateLocationAsync(LocationUpdateDto dto)
+        {
+            var entity = await _db.Locations.FindAsync(dto.Id);
+            if (entity == null) throw new KeyNotFoundException("Location not found.");
+
+            var wh = await _db.Warehouses.FindAsync(entity.WarehouseId);
+            if (wh.Status == WarehouseStatus.Locked || wh.Status == WarehouseStatus.Maintenance)
+                throw new InvalidOperationException("Cannot update location while warehouse is locked or under maintenance.");
+
+            // cập nhật code
+            if (!string.IsNullOrWhiteSpace(dto.Code))
+            {
+                var newCode = dto.Code.Trim().ToUpperInvariant();
+
+                if (newCode != entity.Code)
+                {
+                    // validate pattern
+                    if (!LocationCodeValidator.IsValid(newCode))
+                        throw new InvalidOperationException("Location code invalid. Expected pattern like A1-01-03.");
+
+                    // check duplicate
+                    var dup = await _db.Locations.AnyAsync(l =>
+                        l.WarehouseId == entity.WarehouseId &&
+                        l.Code == newCode &&
+                        l.Id != entity.Id
+                    );
+
+                    if (dup) throw new InvalidOperationException("Location code already exists in warehouse.");
+
+                    entity.Code = newCode;
+                }
+            }
+
+            // cập nhật description + isActive
+            if (dto.Description != null) entity.Description = dto.Description;
+            if (dto.IsActive.HasValue) entity.IsActive = dto.IsActive.Value;
+
+            entity.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            return Map(entity);
+        }
+
+
+        public async Task<bool> DeleteLocationAsync(Guid id)
+        {
+            var entity = await _db.Locations.FindAsync(id);
+            if (entity == null) return false;
+
+
+            var wh = await _db.Warehouses.FindAsync(entity.WarehouseId);
+            if (wh.Status == WarehouseStatus.Locked || wh.Status == WarehouseStatus.Maintenance)
+                throw new InvalidOperationException("Cannot delete location while warehouse is locked or under maintenance.");
+
+
+            // TODO: check inventory in location before deleting (business rule)
+
+
+            _db.Locations.Remove(entity);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+
+        public async Task<IEnumerable<LocationDto>> GetLocationsByWarehouseAsync(Guid warehouseId)
+        {
+            var items = await _db.Locations.Where(l => l.WarehouseId == warehouseId).ToListAsync();
+            return items.Select(Map);
+        }
+
+
+        public async Task<LocationDto> GetLocationByIdAsync(Guid id)
+        {
+            var entity = await _db.Locations.FindAsync(id);
+            return entity == null ? null : Map(entity);
+        }
+
+
+        private WarehouseDto Map(Warehouse w) => new WarehouseDto
+        {
+            Id = w.Id,
+            Code = w.Code,
+            Name = w.Name,
+            Address = w.Address,
+            Status = w.Status,
+            CreatedAt = w.CreatedAt,
+            UpdatedAt = w.UpdatedAt,
+            Locations = w.Locations?.Select(Map).ToList()
+        };
+
+
+        private LocationDto Map(Location l) => new LocationDto
+        {
+            Id = l.Id,
+            WarehouseId = l.WarehouseId,
+            Code = l.Code,
+            Description = l.Description,
+            IsActive = l.IsActive,
+            CreatedAt = l.CreatedAt,
+            UpdatedAt = l.UpdatedAt
+        };
+    }
+}
