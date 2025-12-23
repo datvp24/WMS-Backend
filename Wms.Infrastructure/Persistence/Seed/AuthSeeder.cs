@@ -108,7 +108,26 @@ public static class AuthSeeder
                 new Permission { Code = "warehouse.update", Description = "Update warehouses" },
                 new Permission { Code = "warehouse.delete", Description = "Delete warehouses" },
                 new Permission { Code = "warehouse.lock", Description = "Lock warehouses" },
-                new Permission { Code = "warehouse.unlock", Description = "Unlock warehouses" }
+                new Permission { Code = "warehouse.unlock", Description = "Unlock warehouses" },
+
+                // Transfer
+                new Permission { Code = "transfer.view", Description = "View transfer orders" },
+                new Permission { Code = "transfer.create", Description = "Create transfer orders" },
+                new Permission { Code = "transfer.approve", Description = "Approve transfer orders" },
+                new Permission { Code = "transfer.cancel", Description = "Cancel transfer orders" },
+
+                // SalesOrder
+                new Permission { Code = "salesorder.view", Description = "View sales orders" },
+                new Permission { Code = "salesorder.create", Description = "Create sales orders" },
+                new Permission { Code = "salesorder.update", Description = "Update sales orders" },
+                new Permission { Code = "salesorder.approve", Description = "Approve sales orders" },
+                new Permission { Code = "salesorder.reject", Description = "Reject sales orders" },
+
+                // GoodsIssue
+                new Permission { Code = "goodsissue.view", Description = "View goods issue" },
+                new Permission { Code = "goodsissue.create", Description = "Create goods issue" },
+                new Permission { Code = "goodsissue.complete", Description = "Complete goods issue" },
+                new Permission { Code = "goodsissue.cancel", Description = "Cancel goods issue" },
             };
 
             db.Permissions.AddRange(permissions);

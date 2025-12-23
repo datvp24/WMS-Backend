@@ -8,11 +8,20 @@ public class Inventory
 {
     [Key]
     public Guid Id { get; set; }
+
     public Guid WarehouseId { get; set; }
     public Guid LocationId { get; set; }
     public int ProductId { get; set; }
-    public decimal Quantity { get; set; }          // tổng tồn
-    public decimal LockedQuantity { get; set; }    // đã khóa (SO chưa xuất)
+
+    // ===== Quantities =====
+    public decimal OnHandQuantity { get; set; }       // tồn thực tế
+    public decimal LockedQuantity { get; set; }       // đã reserve
+    public decimal InTransitQuantity { get; set; }    // đang chuyển
+
+    [NotMapped]
+    public decimal AvailableQuantity
+        => OnHandQuantity - LockedQuantity;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }

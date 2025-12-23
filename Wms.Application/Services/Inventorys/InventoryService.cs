@@ -12,6 +12,9 @@ namespace Wms.Application.Services.Inventorys
         private readonly AppDbContext _db;
         public InventoryService(AppDbContext db) => _db = db;
 
+        // =========================
+        // GET INVENTORY
+        // =========================
         public async Task<InventoryDto?> GetAsync(Guid id)
             => await _db.Inventories
                 .Where(x => x.Id == id)
@@ -21,32 +24,45 @@ namespace Wms.Application.Services.Inventorys
                     WarehouseId = x.WarehouseId,
                     LocationId = x.LocationId,
                     ProductId = x.ProductId,
-                    Quantity = x.Quantity,
-                    LockedQuantity = x.LockedQuantity
-                }).FirstOrDefaultAsync();
+                    OnHandQuantity = x.OnHandQuantity,
+                    LockedQuantity = x.LockedQuantity,
+                    InTransitQuantity = x.InTransitQuantity
+                })
+                .FirstOrDefaultAsync();
 
         public async Task<List<InventoryDto>> QueryAsync(InventoryQueryDto dto)
         {
             var query = _db.Inventories.AsQueryable();
-            if (dto.WarehouseId != null) query = query.Where(x => x.WarehouseId == dto.WarehouseId);
-            if (dto.LocationId != null) query = query.Where(x => x.LocationId == dto.LocationId);
-            if (dto.ProductId != null) query = query.Where(x => x.ProductId == dto.ProductId);
 
-            return await query.Select(x => new InventoryDto
-            {
-                Id = x.Id,
-                WarehouseId = x.WarehouseId,
-                LocationId = x.LocationId,
-                ProductId = x.ProductId,
-                Quantity = x.Quantity,
-                LockedQuantity = x.LockedQuantity
-            }).ToListAsync();
+            if (dto.WarehouseId.HasValue)
+                query = query.Where(x => x.WarehouseId == dto.WarehouseId);
+
+            if (dto.LocationId.HasValue)
+                query = query.Where(x => x.LocationId == dto.LocationId);
+
+            if (dto.ProductId.HasValue)
+                query = query.Where(x => x.ProductId == dto.ProductId);
+
+            if (dto.ProductIds != null && dto.ProductIds.Any())
+                query = query.Where(x => dto.ProductIds.Contains(x.ProductId));
+
+            return await query
+                .Select(x => new InventoryDto
+                {
+                    Id = x.Id,
+                    WarehouseId = x.WarehouseId,
+                    LocationId = x.LocationId,
+                    ProductId = x.ProductId,
+                    OnHandQuantity = x.OnHandQuantity,
+                    LockedQuantity = x.LockedQuantity,
+                    InTransitQuantity = x.InTransitQuantity
+                })
+                .ToListAsync();
         }
 
-        public Task<List<InventoryDto>> GetByProductAsync(int productId) => QueryAsync(new InventoryQueryDto { ProductId = productId });
-        public Task<List<InventoryDto>> GetByWarehouseAsync(Guid warehouseId) => QueryAsync(new InventoryQueryDto { WarehouseId = warehouseId });
-        public Task<List<InventoryDto>> GetByLocationAsync(Guid locationId) => QueryAsync(new InventoryQueryDto { LocationId = locationId });
-
+        // =========================
+        // INVENTORY HISTORY
+        // =========================
         public async Task<List<InventoryHistoryDto>> GetHistoryAsync(int productId)
             => await _db.InventoryHistories
                 .Where(x => x.ProductId == productId)
@@ -60,15 +76,28 @@ namespace Wms.Application.Services.Inventorys
                     QuantityChange = x.QuantityChange,
                     ActionType = x.ActionType,
                     ReferenceCode = x.ReferenceCode,
+                    Note = x.Note,
                     CreatedAt = x.CreatedAt
-                }).ToListAsync();
+                })
+                .ToListAsync();
 
-        public async Task AdjustAsync(Guid warehouseId, Guid locationId, int productId, decimal qtyChange, InventoryActionType actionType, string? refCode)
+        // =========================
+        // ADJUST INVENTORY
+        // =========================
+        public async Task AdjustAsync(
+            Guid warehouseId,
+            Guid locationId,
+            int productId,
+            decimal qtyChange,
+            InventoryActionType actionType,
+            string? refCode,
+            string? note = null)
         {
-            var inv = await _db.Inventories.FirstOrDefaultAsync(x =>
-                x.WarehouseId == warehouseId && 
-                x.LocationId == locationId &&
-                x.ProductId == productId);
+            var inv = await _db.Inventories
+                .FirstOrDefaultAsync(x =>
+                    x.WarehouseId == warehouseId &&
+                    x.LocationId == locationId &&
+                    x.ProductId == productId);
 
             if (inv == null)
             {
@@ -78,12 +107,17 @@ namespace Wms.Application.Services.Inventorys
                     WarehouseId = warehouseId,
                     LocationId = locationId,
                     ProductId = productId,
-                    Quantity = 0
+                    OnHandQuantity = 0,
+                    LockedQuantity = 0,
+                    InTransitQuantity = 0
                 };
                 _db.Inventories.Add(inv);
             }
 
-            inv.Quantity += qtyChange;
+            if (inv.OnHandQuantity + qtyChange < 0)
+                throw new Exception("Not enough stock");
+
+            inv.OnHandQuantity += qtyChange;
             inv.UpdatedAt = DateTime.UtcNow;
 
             _db.InventoryHistories.Add(new InventoryHistory
@@ -94,35 +128,90 @@ namespace Wms.Application.Services.Inventorys
                 ProductId = productId,
                 QuantityChange = qtyChange,
                 ActionType = actionType,
-                ReferenceCode = refCode
+                ReferenceCode = refCode,
+                Note = note,
+                CreatedAt = DateTime.UtcNow
             });
 
             await _db.SaveChangesAsync();
         }
 
-        public async Task LockStockAsync(Guid warehouseId, Guid locationId, int productId, decimal qty)
+        // =========================
+        // LOCK STOCK
+        // =========================
+        public async Task LockStockAsync(
+            Guid warehouseId,
+            Guid locationId,
+            int productId,
+            decimal qty,
+            string? note = null)
         {
-            var inv = await _db.Inventories.FirstAsync(x =>
-                x.WarehouseId == warehouseId &&
-                x.LocationId == locationId &&
-                x.ProductId == productId);
+            var inv = await _db.Inventories
+                .FirstOrDefaultAsync(x =>
+                    x.WarehouseId == warehouseId &&
+                    x.LocationId == locationId &&
+                    x.ProductId == productId);
 
-            if (inv.Quantity - inv.LockedQuantity < qty)
+            if (inv == null)
+                throw new Exception("Inventory not found");
+
+            if (inv.OnHandQuantity - inv.LockedQuantity < qty)
                 throw new Exception("Not enough available stock");
 
             inv.LockedQuantity += qty;
+            inv.UpdatedAt = DateTime.UtcNow;
+
+            _db.InventoryHistories.Add(new InventoryHistory
+            {
+                Id = Guid.NewGuid(),
+                WarehouseId = warehouseId,
+                LocationId = locationId,
+                ProductId = productId,
+                QuantityChange = qty,
+                ActionType = InventoryActionType.Lock,
+                Note = note,
+                CreatedAt = DateTime.UtcNow
+            });
+
             await _db.SaveChangesAsync();
         }
 
-        public async Task UnlockStockAsync(Guid warehouseId, Guid locationId, int productId, decimal qty)
+        // =========================
+        // UNLOCK STOCK
+        // =========================
+        public async Task UnlockStockAsync(
+            Guid warehouseId,
+            Guid locationId,
+            int productId,
+            decimal qty,
+            string? note = null)
         {
-            var inv = await _db.Inventories.FirstAsync(x =>
-                x.WarehouseId == warehouseId &&
-                x.LocationId == locationId &&
-                x.ProductId == productId);
+            var inv = await _db.Inventories
+                .FirstOrDefaultAsync(x =>
+                    x.WarehouseId == warehouseId &&
+                    x.LocationId == locationId &&
+                    x.ProductId == productId);
+
+            if (inv == null)
+                throw new Exception("Inventory not found");
+
+            if (inv.LockedQuantity < qty)
+                throw new Exception("Cannot unlock more than locked quantity");
 
             inv.LockedQuantity -= qty;
-            if (inv.LockedQuantity < 0) inv.LockedQuantity = 0;
+            inv.UpdatedAt = DateTime.UtcNow;
+
+            _db.InventoryHistories.Add(new InventoryHistory
+            {
+                Id = Guid.NewGuid(),
+                WarehouseId = warehouseId,
+                LocationId = locationId,
+                ProductId = productId,
+                QuantityChange = -qty,
+                ActionType = InventoryActionType.Unlock,
+                Note = note,
+                CreatedAt = DateTime.UtcNow
+            });
 
             await _db.SaveChangesAsync();
         }

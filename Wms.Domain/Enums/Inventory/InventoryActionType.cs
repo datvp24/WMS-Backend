@@ -10,6 +10,7 @@
         AdjustDecrease = 6,   // Điều chỉnh -
         StockCount = 7,       // Kiểm kê chênh lệch
         Lock = 8,             // Khóa tồn
-        Unlock = 9            // Mở khóa tồn
+        Unlock = 9        ,    // Mở khóa tồn
+            StockTakeAdjustment = 10 // Thêm dòng này
     }
 }

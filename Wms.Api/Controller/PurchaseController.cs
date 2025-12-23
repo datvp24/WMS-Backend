@@ -32,8 +32,9 @@ public class PurchaseController : ControllerBase
     [HasPermission("purchase.po.view")]
     public async Task<ActionResult<PurchaseOrderDto>> GetPOById(Guid poId)
     {
-        var pos = await _purchaseService.GetPOsAsync();
-        var po = pos.FirstOrDefault(x => x.Id == poId);
+        // Gọi trực tiếp hàm lấy chi tiết để Service tính toán ReceivedQuantity
+        var po = await _purchaseService.GetPOAsync(poId);
+
         if (po == null) return NotFound();
         return Ok(po);
     }
@@ -86,6 +87,7 @@ public class PurchaseController : ControllerBase
         if (gr == null) return NotFound();
         return Ok(gr);
     }
+    
 
     [HttpGet("gr")]
     [HasPermission("purchase.gr.view")]

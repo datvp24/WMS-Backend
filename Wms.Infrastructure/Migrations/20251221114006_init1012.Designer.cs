@@ -12,8 +12,8 @@ using Wms.Infrastructure.Persistence.Context;
 namespace Wms.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251213083741_init1011")]
-    partial class init1011
+    [Migration("20251221114006_init1012")]
+    partial class init1012
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -247,22 +247,25 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<decimal>("InTransitQuantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,4)")
+                        .HasDefaultValue(0m);
+
                     b.Property<Guid>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<decimal>("LockedQuantity")
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<decimal>("OnHandQuantity")
+                        .HasColumnType("decimal(18,4)");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,4)");
-
                     b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime");
 
                     b.Property<Guid>("WarehouseId")
                         .HasColumnType("char(36)");
@@ -823,6 +826,106 @@ namespace Wms.Infrastructure.Migrations
                     b.ToTable("SalesOrderItems", (string)null);
                 });
 
+            modelBuilder.Entity("Wms.Domain.Entity.Transfer.TransferOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("FromWarehouseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ToWarehouseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("FromWarehouseId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("ToWarehouseId");
+
+                    b.ToTable("transfer_orders", (string)null);
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Transfer.TransferOrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("FromLocationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ToLocationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("TransferOrderId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromLocationId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ToLocationId");
+
+                    b.HasIndex("TransferOrderId", "ProductId", "FromLocationId", "ToLocationId")
+                        .HasDatabaseName("idx_transfer_item_lookup");
+
+                    b.ToTable("transfer_order_items", (string)null);
+                });
+
             modelBuilder.Entity("Wms.Domain.Entity.Warehouses.Location", b =>
                 {
                     b.Property<Guid>("Id")
@@ -980,19 +1083,19 @@ namespace Wms.Infrastructure.Migrations
                     b.HasOne("Wms.Domain.Entity.Warehouses.Location", null)
                         .WithMany()
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", null)
                         .WithMany()
                         .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -1151,6 +1254,60 @@ namespace Wms.Infrastructure.Migrations
                     b.Navigation("SalesOrder");
                 });
 
+            modelBuilder.Entity("Wms.Domain.Entity.Transfer.TransferOrder", b =>
+                {
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", "FromWarehouse")
+                        .WithMany()
+                        .HasForeignKey("FromWarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", "ToWarehouse")
+                        .WithMany()
+                        .HasForeignKey("ToWarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FromWarehouse");
+
+                    b.Navigation("ToWarehouse");
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Transfer.TransferOrderItem", b =>
+                {
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Location", "FromLocation")
+                        .WithMany()
+                        .HasForeignKey("FromLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Wms.Domain.Entity.MasterData.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Location", "ToLocation")
+                        .WithMany()
+                        .HasForeignKey("ToLocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Wms.Domain.Entity.Transfer.TransferOrder", "TransferOrder")
+                        .WithMany("Items")
+                        .HasForeignKey("TransferOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FromLocation");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ToLocation");
+
+                    b.Navigation("TransferOrder");
+                });
+
             modelBuilder.Entity("Wms.Domain.Entity.Warehouses.Location", b =>
                 {
                     b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", "Warehouse")
@@ -1204,6 +1361,11 @@ namespace Wms.Infrastructure.Migrations
                 {
                     b.Navigation("GoodsIssues");
 
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Transfer.TransferOrder", b =>
+                {
                     b.Navigation("Items");
                 });
 

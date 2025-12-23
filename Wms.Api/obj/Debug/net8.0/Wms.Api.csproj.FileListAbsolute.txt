@@ -331,4 +331,5 @@ D:\NET\Wms\Wms.Api\obj\Debug\net8.0\refint\Wms.Api.dll
 D:\NET\Wms\Wms.Api\obj\Debug\net8.0\Wms.Api.pdb
 D:\NET\Wms\Wms.Api\obj\Debug\net8.0\Wms.Api.genruntimeconfig.cache
 D:\NET\Wms\Wms.Api\obj\Debug\net8.0\ref\Wms.Api.dll
+D:\NET\Wms\Wms.Api\obj\Debug\net8.0\Wms.Api.sourcelink.json
 D:\NET\Wms\Wms.Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

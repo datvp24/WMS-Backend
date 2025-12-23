@@ -9,8 +9,10 @@ namespace Wms.Application.DTOs.Inventorys
         public Guid WarehouseId { get; set; }
         public Guid LocationId { get; set; }
         public int ProductId { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal OnHandQuantity { get; set; }
         public decimal LockedQuantity { get; set; }
+        public decimal AvailableQuantity => OnHandQuantity - LockedQuantity;
+        public decimal InTransitQuantity { get; set; } // optional
     }
 
     public class InventoryHistoryDto
@@ -22,14 +24,8 @@ namespace Wms.Application.DTOs.Inventorys
         public decimal QuantityChange { get; set; }
         public InventoryActionType ActionType { get; set; }
         public string? ReferenceCode { get; set; }
+        public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
-    }
-
-    public class InventoryQueryDto
-    {
-        public Guid? WarehouseId { get; set; }
-        public Guid? LocationId { get; set; }
-        public int? ProductId { get; set; }
     }
 
     public class InventoryAdjustRequest
@@ -38,8 +34,9 @@ namespace Wms.Application.DTOs.Inventorys
         public Guid LocationId { get; set; }
         public int ProductId { get; set; }
         public decimal QtyChange { get; set; }
-        public string Action { get; set; } = default!; // frontend gửi: "Receive", "Issue" ...
+        public InventoryActionType ActionType { get; set; } // enum, không string
         public string? RefCode { get; set; }
+        public string? Note { get; set; }
     }
 
     public class InventoryLockRequest
@@ -48,5 +45,15 @@ namespace Wms.Application.DTOs.Inventorys
         public Guid LocationId { get; set; }
         public int ProductId { get; set; }
         public decimal Quantity { get; set; }
+        public bool Lock { get; set; } = true; // true: lock, false: release
     }
+
+    public class InventoryQueryDto
+    {
+        public Guid? WarehouseId { get; set; }
+        public Guid? LocationId { get; set; }
+        public int? ProductId { get; set; }
+        public List<int>? ProductIds { get; set; } // mở rộng query nhiều sản phẩm
+    }
+
 }

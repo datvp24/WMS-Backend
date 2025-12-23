@@ -38,6 +38,9 @@ public class SalesOrderCreateDto
 {
     [Required]
     public int CustomerId { get; set; }
+    public string Code { get; set; }
+
+
 
     [Required]
     public List<SalesOrderItemCreateDto> Items { get; set; } = new();

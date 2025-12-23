@@ -10,6 +10,8 @@ using Wms.Domain.Entity.Purchase;
 using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Entity.Sales;
 using Wms.Domain.Entity.Warehouses;
+using Wms.Domain.Entity.Transfer;
+using Wms.Domain.Entity.StockTakes;
 
 namespace Wms.Infrastructure.Persistence.Context
 {
@@ -54,13 +56,13 @@ namespace Wms.Infrastructure.Persistence.Context
         public DbSet<GoodsIssue> GoodsIssues => Set<GoodsIssue>();
         public DbSet<GoodsIssueItem> GoodsIssueItems => Set<GoodsIssueItem>();
 
-        //// TRANSFER
-        //public DbSet<TransferOrder> TransferOrders => Set<TransferOrder>();
-        //public DbSet<TransferOrderItem> TransferOrderItems => Set<TransferOrderItem>();
+        // TRANSFER
+        public DbSet<TransferOrder> TransferOrders => Set<TransferOrder>();
+        public DbSet<TransferOrderItem> TransferOrderItems => Set<TransferOrderItem>();
 
-        //// STOCK TAKE
-        //public DbSet<StockTake> StockTakes => Set<StockTake>();
-        //public DbSet<StockTakeItem> StockTakeItems => Set<StockTakeItem>();
+        // STOCK TAKE
+        public DbSet<StockTake> StockTakes => Set<StockTake>();
+        public DbSet<StockTakeItem> StockTakeItems => Set<StockTakeItem>();
 
         //// SYSTEM
         //public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

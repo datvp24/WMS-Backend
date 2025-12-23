@@ -36,3 +36,4 @@ D:\NET\Wms\Wms.Infrastructure\obj\Debug\net8.0\refint\Wms.Infrastructure.dll
 D:\NET\Wms\Wms.Infrastructure\obj\Debug\net8.0\Wms.Infrastructure.pdb
 D:\NET\Wms\Wms.Infrastructure\obj\Debug\net8.0\Wms.Infrastructure.genruntimeconfig.cache
 D:\NET\Wms\Wms.Infrastructure\obj\Debug\net8.0\ref\Wms.Infrastructure.dll
+D:\NET\Wms\Wms.Infrastructure\obj\Debug\net8.0\Wms.Infrastructure.sourcelink.json

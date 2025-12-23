@@ -20,3 +20,4 @@ D:\NET\Wms\Wms.Domain\obj\Debug\net8.0\Wms.Domain.dll
 D:\NET\Wms\Wms.Domain\obj\Debug\net8.0\refint\Wms.Domain.dll
 D:\NET\Wms\Wms.Domain\obj\Debug\net8.0\Wms.Domain.pdb
 D:\NET\Wms\Wms.Domain\obj\Debug\net8.0\ref\Wms.Domain.dll
+D:\NET\Wms\Wms.Domain\obj\Debug\net8.0\Wms.Domain.sourcelink.json

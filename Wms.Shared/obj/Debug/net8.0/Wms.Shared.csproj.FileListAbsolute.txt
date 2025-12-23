@@ -22,3 +22,4 @@ D:\NET\Wms\Wms.Shared\obj\Debug\net8.0\Wms.Shared.dll
 D:\NET\Wms\Wms.Shared\obj\Debug\net8.0\refint\Wms.Shared.dll
 D:\NET\Wms\Wms.Shared\obj\Debug\net8.0\Wms.Shared.pdb
 D:\NET\Wms\Wms.Shared\obj\Debug\net8.0\ref\Wms.Shared.dll
+D:\NET\Wms\Wms.Shared\obj\Debug\net8.0\Wms.Shared.sourcelink.json

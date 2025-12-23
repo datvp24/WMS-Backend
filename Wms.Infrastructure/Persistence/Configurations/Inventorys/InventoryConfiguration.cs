@@ -10,9 +10,11 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
     {
         builder.ToTable("Inventories");
 
+        // Primary key
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.Quantity)
+        // Quantities
+        builder.Property(x => x.OnHandQuantity)
                .HasColumnType("decimal(18,4)")
                .IsRequired();
 
@@ -20,16 +22,21 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
                .HasColumnType("decimal(18,4)")
                .IsRequired();
 
+        builder.Property(x => x.InTransitQuantity)
+               .HasColumnType("decimal(18,4)")
+               .IsRequired()
+               .HasDefaultValue(0m);
+
+        // Timestamps
         builder.Property(x => x.CreatedAt)
                .HasColumnType("datetime")
                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(x => x.UpdatedAt)
                .HasColumnType("datetime")
-               .IsRequired(false)
-               .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+               .IsRequired(false);
 
-        // Unique constraint
+        // Unique constraint: mỗi Product + Warehouse + Location chỉ có 1 record
         builder.HasIndex(x => new { x.WarehouseId, x.LocationId, x.ProductId })
                .IsUnique();
 
@@ -38,9 +45,20 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
         builder.HasIndex(x => x.WarehouseId);
         builder.HasIndex(x => x.LocationId);
 
-        // Quan hệ với các bảng liên quan
-        builder.HasOne<Warehouse>().WithMany().HasForeignKey(x => x.WarehouseId);
-        builder.HasOne<Location>().WithMany().HasForeignKey(x => x.LocationId);
-        builder.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId);
+        // Quan hệ
+        builder.HasOne<Warehouse>()
+               .WithMany()
+               .HasForeignKey(x => x.WarehouseId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Location>()
+               .WithMany()
+               .HasForeignKey(x => x.LocationId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Product>()
+               .WithMany()
+               .HasForeignKey(x => x.ProductId)
+               .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -571,6 +571,11 @@
         "Name": "productId",
         "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
+      },
+      {
+        "Name": "productIds",
+        "Type": "System.Collections.Generic.List\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -609,8 +614,24 @@
   },
   {
     "ContainingType": "Wms.Api.Controllers.InventoryController",
-    "Method": "Lock",
-    "RelativePath": "api/Inventory/lock",
+    "Method": "GetByLocation",
+    "RelativePath": "api/Inventory/location/{locationId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "locationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.InventoryController",
+    "Method": "LockToggle",
+    "RelativePath": "api/Inventory/lock-toggle",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -618,6 +639,22 @@
       {
         "Name": "req",
         "Type": "Wms.Application.DTOs.Inventorys.InventoryLockRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.InventoryController",
+    "Method": "GetByProduct",
+    "RelativePath": "api/Inventory/product/{productId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int32",
         "IsRequired": true
       }
     ],
@@ -641,15 +678,15 @@
   },
   {
     "ContainingType": "Wms.Api.Controllers.InventoryController",
-    "Method": "Unlock",
-    "RelativePath": "api/Inventory/unlock",
-    "HttpMethod": "POST",
+    "Method": "GetByWarehouse",
+    "RelativePath": "api/Inventory/warehouse/{warehouseId}",
+    "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "req",
-        "Type": "Wms.Application.DTOs.Inventorys.InventoryLockRequest",
+        "Name": "warehouseId",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
@@ -1370,6 +1407,107 @@
     ]
   },
   {
+    "ContainingType": "Wms.Api.Controllers.StockTakeController",
+    "Method": "GetAll",
+    "RelativePath": "api/StockTake",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.StockTakeController",
+    "Method": "Create",
+    "RelativePath": "api/StockTake",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOS.StockTake.CreateStockTakeDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.StockTakeController",
+    "Method": "GetById",
+    "RelativePath": "api/StockTake/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.StockTakeController",
+    "Method": "Complete",
+    "RelativePath": "api/StockTake/{id}/complete",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.StockTakeController",
+    "Method": "Start",
+    "RelativePath": "api/StockTake/{id}/start",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.StockTakeController",
+    "Method": "SubmitCounts",
+    "RelativePath": "api/StockTake/submit-counts",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOS.StockTake.SubmitCountDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Wms.Api.Controllers.SupplierController",
     "Method": "Create",
     "RelativePath": "api/Supplier",
@@ -1443,6 +1581,96 @@
       {
         "Name": "id",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.TransferController",
+    "Method": "GetAll",
+    "RelativePath": "api/Transfer",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "status",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.TransferController",
+    "Method": "Create",
+    "RelativePath": "api/Transfer",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOS.Transfer.TransferOrderDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.TransferController",
+    "Method": "GetById",
+    "RelativePath": "api/Transfer/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.TransferController",
+    "Method": "Approve",
+    "RelativePath": "api/Transfer/{id}/approve",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.TransferController",
+    "Method": "Cancel",
+    "RelativePath": "api/Transfer/{id}/cancel",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],

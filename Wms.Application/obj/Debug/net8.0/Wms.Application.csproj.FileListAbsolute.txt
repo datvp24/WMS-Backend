@@ -36,3 +36,4 @@ D:\NET\Wms\Wms.Application\obj\Debug\net8.0\Wms.Application.dll
 D:\NET\Wms\Wms.Application\obj\Debug\net8.0\refint\Wms.Application.dll
 D:\NET\Wms\Wms.Application\obj\Debug\net8.0\Wms.Application.pdb
 D:\NET\Wms\Wms.Application\obj\Debug\net8.0\ref\Wms.Application.dll
+D:\NET\Wms\Wms.Application\obj\Debug\net8.0\Wms.Application.sourcelink.json

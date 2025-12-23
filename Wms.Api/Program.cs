@@ -2,6 +2,7 @@
 using Wms.Api.Extensions;
 using Wms.Infrastructure.Persistence.Context;
 using Wms.Infrastructure.Seed;
+using Wms.Application.Mapper.Sales;
 using AutoMapper;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,8 @@ builder.Services.AddControllers();
 
 // Add Application Services (Gom nhóm các AddScoped lại)
 builder.Services.AddApplicationServices();
+
+builder.Services.AddAutoMapper(typeof(SalesMappingProfile));
 
 // Add JWT Authentication
 builder.Services.AddJwtAuthentication(builder.Configuration);

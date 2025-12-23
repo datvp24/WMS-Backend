@@ -5,18 +5,57 @@ namespace Wms.Application.Interfaces.Services.Inventory
 {
     public interface IInventoryService
     {
+        // =========================
+        // GET INVENTORY
+        // =========================
+        public Task<List<InventoryDto>> GetByProductAsync(int productId)
+    => QueryAsync(new InventoryQueryDto { ProductId = productId });
+
+        public Task<List<InventoryDto>> GetByWarehouseAsync(Guid warehouseId)
+            => QueryAsync(new InventoryQueryDto { WarehouseId = warehouseId });
+
+        public Task<List<InventoryDto>> GetByLocationAsync(Guid locationId)
+            => QueryAsync(new InventoryQueryDto { LocationId = locationId });
+
         Task<InventoryDto?> GetAsync(Guid id);
-
         Task<List<InventoryDto>> QueryAsync(InventoryQueryDto dto);
-        Task<List<InventoryDto>> GetByProductAsync(int productId);
-        Task<List<InventoryDto>> GetByWarehouseAsync(Guid warehouseId);
-        Task<List<InventoryDto>> GetByLocationAsync(Guid locationId);
 
+
+        // =========================
+        // INVENTORY HISTORY
+        // =========================
         Task<List<InventoryHistoryDto>> GetHistoryAsync(int productId);
 
-        Task AdjustAsync(Guid warehouseId, Guid locationId, int productId, decimal qtyChange, InventoryActionType actionType, string? refCode);
+        // =========================
+        // ADJUST INVENTORY
+        // =========================
+        Task AdjustAsync(
+            Guid warehouseId,
+            Guid locationId,
+            int productId,
+            decimal qtyChange,
+            InventoryActionType actionType,
+            string? refCode = null,
+            string? note = null
+        );
 
-        Task LockStockAsync(Guid warehouseId, Guid locationId, int productId, decimal qty);
-        Task UnlockStockAsync(Guid warehouseId, Guid locationId, int productId, decimal qty);
+        // =========================
+        // LOCK / UNLOCK STOCK
+        // =========================
+        Task LockStockAsync(
+            Guid warehouseId,
+            Guid locationId,
+            int productId,
+            decimal qty,
+            string? note = null
+        );
+
+        Task UnlockStockAsync(
+            Guid warehouseId,
+            Guid locationId,
+            int productId,
+            decimal qty,
+            string? note = null
+        );
     }
 }

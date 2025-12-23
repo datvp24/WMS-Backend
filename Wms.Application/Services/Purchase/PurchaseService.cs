@@ -13,7 +13,7 @@ namespace Wms.Application.Services.Purchase;
 public class PurchaseService : IPurchaseService
 {
     private readonly AppDbContext _db;
-    private readonly IInventoryService _inventoryService;
+    private readonly IInventoryService _inventoryService;   
     private readonly IJwtService _jwt;
 
     public PurchaseService(AppDbContext db, IInventoryService inventoryService, IJwtService jwt)
@@ -207,7 +207,81 @@ public class PurchaseService : IPurchaseService
 
         return grs.Select(MapGRToDto).ToList();
     }
+    private async Task<PurchaseOrderDto> MapPOWithReceivedQtyAsync(PurchaseOrder po)
+    {
+        // Lấy tổng số lượng đã nhận từ các phiếu GR (GoodsReceipt) liên quan đến PO này
+        var receivedQtys = await _db.Set<GoodsReceiptItem>()
+            .Where(gri => gri.GoodsReceipt.PurchaseOrderId == po.Id)
+            .GroupBy(gri => gri.ProductId)
+            .Select(g => new {
+                ProductId = g.Key,
+                TotalReceived = g.Sum(x => x.Quantity)
+            })
+            .ToListAsync();
 
+        return new PurchaseOrderDto
+        {
+            Id = po.Id,
+            Code = po.Code,
+            SupplierId = po.SupplierId,
+            Status = po.Status,
+            CreatedAt = po.CreatedAt,
+            UpdatedAt = po.UpdatedAt,
+            ApprovedAt = po.ApprovedAt,
+            Items = po.Items.Select(i => {
+                var received = receivedQtys.FirstOrDefault(r => r.ProductId == i.ProductId)?.TotalReceived ?? 0;
+                return new PurchaseOrderItemDto
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity, // Đây là số lượng đặt (Ordered Qty)
+                    ReceivedQuantity = received, // Số lượng đã về kho (CẦN THÊM PROPERTY NÀY VÀO DTO)
+                    Price = i.Price,
+                    CreatedAt = i.CreatedAt,
+                    UpdatedAt = i.UpdatedAt
+                };
+            }).ToList()
+        };
+    }
+    public async Task<PurchaseOrderDto> GetPOAsync(Guid poId)
+    {
+        // 1. Lấy thông tin PO và Items
+        var po = await _db.Set<PurchaseOrder>()
+                          .Include(x => x.Items)
+                          .FirstOrDefaultAsync(x => x.Id == poId);
+
+        if (po == null) throw new NotFoundException("PO not found");
+
+        // 2. Tính tổng số lượng đã nhận từ tất cả các GoodsReceipt liên quan đến PO này
+        // Truy vấn vào bảng GoodsReceiptItem (nơi lưu thực tế số lượng đã nhập)
+        var receivedQtys = await _db.Set<GoodsReceiptItem>()
+            .Where(x => x.GoodsReceipt.PurchaseOrderId == poId)
+            .GroupBy(x => x.ProductId)
+            .Select(g => new {
+                ProductId = g.Key,
+                Total = g.Sum(i => i.Quantity)
+            })
+            .ToListAsync();
+
+        // 3. Map sang DTO và gán con số thực tế vào
+        var dto = new PurchaseOrderDto
+        {
+            Id = po.Id,
+            Code = po.Code,
+            SupplierId = po.SupplierId,
+            Status = po.Status,
+            CreatedAt = po.CreatedAt,
+            Items = po.Items.Select(i => new PurchaseOrderItemDto
+            {
+                ProductId = i.ProductId,
+                Quantity = i.Quantity, // Đây là số lượng đặt (ví dụ 112)
+                Price = i.Price,
+                // Gán số lượng đã nhận từ kết quả GroupBy ở trên
+                ReceivedQuantity = receivedQtys.FirstOrDefault(r => r.ProductId == i.ProductId)?.Total ?? 0
+            }).ToList()
+        };
+
+        return dto;
+    }
     public async Task CancelGRAsync(Guid grId)
     {
         var gr = await _db.Set<GoodsReceipt>()

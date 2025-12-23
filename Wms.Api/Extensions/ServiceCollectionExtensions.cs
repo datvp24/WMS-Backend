@@ -12,6 +12,16 @@ using Wms.Application.Services.MasterData;
 using Wms.Application.Services.Purchase;
 using Wms.Application.Services.System;
 using Wms.Application.Services.Warehouses;
+using Wms.Application.Services.Sales;
+
+using Wms.Application.Services.Transfer;
+using Wms.Application.Interfaces.Service.Sales;
+using Wms.Domain.Service.Sales;
+using Wms.Application.Interfaces.Services.Transfer;
+using Wms.Application.Interfaces.Services.StockTake;
+using Wms.Application.Services.StockTake;
+
+
 //using Wms.Application.Services.Sales;
 
 
@@ -42,9 +52,13 @@ namespace Wms.Api.Extensions // Đảm bảo đúng namespace của API project
             // PURCHASE
             services.AddScoped<IPurchaseService, PurchaseService>();
             //SALES
-            services.AddScoped<IPurchaseService, PurchaseService>();
+            services.AddScoped<ISalesOrderService, SalesOrderService>();
+            services.AddScoped<IGoodsIssueService, GoodsIssueService>();
+            //TRANSFER
+            services.AddScoped<ITransferService, TransferService>();
 
-
+            //STOCKTAKE
+            services.AddScoped<IStockTakeService, StockTakeService>();
             return services;
         }
     }

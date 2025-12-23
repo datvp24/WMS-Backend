@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Wms.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class init1011 : Migration
+    public partial class init1012 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -419,6 +419,43 @@ namespace Wms.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "transfer_orders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Code = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FromWarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ToWarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Note = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ApprovedBy = table.Column<int>(type: "int", nullable: true),
+                    ApprovedAt = table.Column<DateTime>(type: "datetime", nullable: true),
+                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false),
+                    UpdatedBy = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_transfer_orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_transfer_orders_Warehouses_FromWarehouseId",
+                        column: x => x.FromWarehouseId,
+                        principalTable: "Warehouses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_transfer_orders_Warehouses_ToWarehouseId",
+                        column: x => x.ToWarehouseId,
+                        principalTable: "Warehouses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "GoodsIssues",
                 columns: table => new
                 {
@@ -534,10 +571,11 @@ namespace Wms.Infrastructure.Migrations
                     WarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     LocationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    OnHandQuantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     LockedQuantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    InTransitQuantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false, defaultValue: 0m),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+                    UpdatedAt = table.Column<DateTime>(type: "datetime", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -547,19 +585,19 @@ namespace Wms.Infrastructure.Migrations
                         column: x => x.LocationId,
                         principalTable: "Locations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Inventories_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Inventories_Warehouses_WarehouseId",
                         column: x => x.WarehouseId,
                         principalTable: "Warehouses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -598,6 +636,49 @@ namespace Wms.Infrastructure.Migrations
                         name: "FK_InventoryHistories_Warehouses_WarehouseId",
                         column: x => x.WarehouseId,
                         principalTable: "Warehouses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "transfer_order_items",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    TransferOrderId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    FromLocationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ToLocationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Quantity = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Note = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_transfer_order_items", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_transfer_order_items_Locations_FromLocationId",
+                        column: x => x.FromLocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_transfer_order_items_Locations_ToLocationId",
+                        column: x => x.ToLocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_transfer_order_items_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_transfer_order_items_transfer_orders_TransferOrderId",
+                        column: x => x.TransferOrderId,
+                        principalTable: "transfer_orders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -866,6 +947,52 @@ namespace Wms.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "idx_transfer_item_lookup",
+                table: "transfer_order_items",
+                columns: new[] { "TransferOrderId", "ProductId", "FromLocationId", "ToLocationId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_order_items_FromLocationId",
+                table: "transfer_order_items",
+                column: "FromLocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_order_items_ProductId",
+                table: "transfer_order_items",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_order_items_ToLocationId",
+                table: "transfer_order_items",
+                column: "ToLocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_orders_Code",
+                table: "transfer_orders",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_orders_CreatedAt",
+                table: "transfer_orders",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_orders_FromWarehouseId",
+                table: "transfer_orders",
+                column: "FromWarehouseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_orders_Status",
+                table: "transfer_orders",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transfer_orders_ToWarehouseId",
+                table: "transfer_orders",
+                column: "ToWarehouseId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Units_Code",
                 table: "Units",
                 column: "Code",
@@ -925,6 +1052,9 @@ namespace Wms.Infrastructure.Migrations
                 name: "SalesOrderItems");
 
             migrationBuilder.DropTable(
+                name: "transfer_order_items");
+
+            migrationBuilder.DropTable(
                 name: "UserPermissions");
 
             migrationBuilder.DropTable(
@@ -943,6 +1073,9 @@ namespace Wms.Infrastructure.Migrations
                 name: "Products");
 
             migrationBuilder.DropTable(
+                name: "transfer_orders");
+
+            migrationBuilder.DropTable(
                 name: "Permissions");
 
             migrationBuilder.DropTable(
@@ -958,9 +1091,6 @@ namespace Wms.Infrastructure.Migrations
                 name: "PurchaseOrders");
 
             migrationBuilder.DropTable(
-                name: "Warehouses");
-
-            migrationBuilder.DropTable(
                 name: "Brands");
 
             migrationBuilder.DropTable(
@@ -968,6 +1098,9 @@ namespace Wms.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Units");
+
+            migrationBuilder.DropTable(
+                name: "Warehouses");
 
             migrationBuilder.DropTable(
                 name: "Customers");
