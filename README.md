@@ -17,7 +17,6 @@
 
 * Register, Login, JWT, Refresh Token
 * CRUD User
-* Assign Role
 * Assign Permission
 * Middleware: HasPermission
 * Authorization theo role + permission
