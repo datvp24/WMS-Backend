@@ -13,7 +13,7 @@
 | RolePermissions |
 | UserPermissions |
 	
-**Nội dung module (code full):**
+**Nội dung module:**
 
 * Register, Login, JWT, Refresh Token
 * CRUD User
