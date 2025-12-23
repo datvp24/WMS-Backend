@@ -12,7 +12,7 @@
 | Permissions     |
 | RolePermissions |
 | UserPermissions |
-	
+
 **Nội dung module:**
 
 * Register, Login, JWT, Refresh Token
