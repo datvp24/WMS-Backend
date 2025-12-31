@@ -38,6 +38,16 @@ public class PurchaseController : ControllerBase
         if (po == null) return NotFound();
         return Ok(po);
     }
+    [HttpGet("pom0/{poId}")]
+    [HasPermission("purchase.po.view")]
+    public async Task<ActionResult<PurchaseOrderDto>> GetPOM0ById(Guid poId)
+    {
+        // Gọi trực tiếp hàm lấy chi tiết để Service tính toán ReceivedQuantity
+        var po = await _purchaseService.GetPOM0Async(poId);
+
+        if (po == null) return NotFound();
+        return Ok(po);
+    }
 
     [HttpGet("po")]
     [HasPermission("purchase.po.view")]

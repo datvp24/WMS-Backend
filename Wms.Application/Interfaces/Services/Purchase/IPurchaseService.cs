@@ -8,6 +8,8 @@ public interface IPurchaseService
     Task<PurchaseOrderDto> RejectPOAsync(Guid poId);
     Task<List<PurchaseOrderDto>> GetPOsAsync(int page = 1, int pageSize = 20, string? status = null);
     Task<PurchaseOrderDto> GetPOAsync(Guid poId);
+    Task<PurchaseOrderDto> GetPOM0Async(Guid poId);
+
 
     // GOODS RECEIPT
     Task<GoodsReceiptDto> CreateGRAsync(GoodsReceiptDto dto);

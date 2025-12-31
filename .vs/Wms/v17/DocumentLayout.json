@@ -3,8 +3,52 @@
   "WorkspaceRootPath": "D:\\NET\\Wms\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\services\\sales\\goodsissueservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|solutionrelative:wms.application\\services\\sales\\goodsissueservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\services\\sales\\salesorderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|solutionrelative:wms.application\\services\\sales\\salesorderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\purchasecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\purchasecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\interfaces\\services\\purchase\\ipurchaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|solutionrelative:wms.application\\interfaces\\services\\purchase\\ipurchaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\services\\purchase\\purchaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|solutionrelative:wms.application\\services\\purchase\\purchaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\services\\auth\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|solutionrelative:wms.application\\services\\auth\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{B08AA623-BE9E-468D-AFEE-02A8F45CC960}|Wms.Infrastructure\\Wms.Infrastructure.csproj|d:\\net\\wms\\wms.infrastructure\\persistence\\seed\\authseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B08AA623-BE9E-468D-AFEE-02A8F45CC960}|Wms.Infrastructure\\Wms.Infrastructure.csproj|solutionrelative:wms.infrastructure\\persistence\\seed\\authseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\salesordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\salesordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\stocktakecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\stocktakecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\warehousecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -23,24 +67,8 @@
       "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\suppliercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\stocktakecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\stocktakecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\salesordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\salesordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\rolecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\rolecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\purchasecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\purchasecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\permissioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -63,16 +91,8 @@
       "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\customercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\brandcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\brandcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\controller\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|solutionrelative:wms.api\\controller\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\services\\transfer\\transferservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -89,10 +109,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\services\\stocktake\\stocktakeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|solutionrelative:wms.application\\services\\stocktake\\stocktakeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|d:\\net\\wms\\wms.application\\services\\sales\\salesorderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{692B9358-6654-4270-9C00-C34811E7ABA4}|Wms.Application\\Wms.Application.csproj|solutionrelative:wms.application\\services\\sales\\salesorderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}|Wms.Api\\Wms.Api.csproj|d:\\net\\wms\\wms.api\\extensions\\servicecollectionextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -179,45 +195,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "AuthSeeder.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
-              "RelativeDocumentMoniker": "Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
-              "RelativeToolTip": "Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
-              "ViewState": "AgIAAH8AAAAAAAAAAAAAAIQAAAAxAAAAAAAAAA==",
+              "Title": "GoodsIssueService.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\Sales\\GoodsIssueService.cs",
+              "RelativeDocumentMoniker": "Wms.Application\\Services\\Sales\\GoodsIssueService.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Application\\Services\\Sales\\GoodsIssueService.cs",
+              "RelativeToolTip": "Wms.Application\\Services\\Sales\\GoodsIssueService.cs",
+              "ViewState": "AgIAAIoAAAAAAAAAAAAowAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:57:17.909Z",
+              "WhenOpened": "2025-12-31T17:59:43.01Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "WarehouseController.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\WarehouseController.cs",
-              "RelativeDocumentMoniker": "Wms.Api\\Controller\\WarehouseController.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\WarehouseController.cs",
-              "RelativeToolTip": "Wms.Api\\Controller\\WarehouseController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAABKAAAAAAAAAA==",
+              "DocumentIndex": 6,
+              "Title": "AuthService.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\Auth\\AuthService.cs",
+              "RelativeDocumentMoniker": "Wms.Application\\Services\\Auth\\AuthService.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Application\\Services\\Auth\\AuthService.cs",
+              "RelativeToolTip": "Wms.Application\\Services\\Auth\\AuthService.cs",
+              "ViewState": "AgIAAHcAAAAAAAAAAAA9wBEAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:57:05.628Z",
+              "WhenOpened": "2025-12-29T03:53:33.844Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "UnitController.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\UnitController.cs",
-              "RelativeDocumentMoniker": "Wms.Api\\Controller\\UnitController.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\UnitController.cs",
-              "RelativeToolTip": "Wms.Api\\Controller\\UnitController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:57:04.161Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 15,
               "Title": "SupplierController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\SupplierController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\SupplierController.cs",
@@ -225,25 +228,23 @@
               "RelativeToolTip": "Wms.Api\\Controller\\SupplierController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:56:26.312Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:56:26.312Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 10,
               "Title": "SalesOrderController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\SalesOrderController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\SalesOrderController.cs",
               "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\SalesOrderController.cs",
               "RelativeToolTip": "Wms.Api\\Controller\\SalesOrderController.cs",
-              "ViewState": "AgIAADMAAAAAAAAAAAAUwE0AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAACYAAAAAAAAAAAAgwE0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:55:47.397Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:55:47.397Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 16,
               "Title": "RoleController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\RoleController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\RoleController.cs",
@@ -251,64 +252,76 @@
               "RelativeToolTip": "Wms.Api\\Controller\\RoleController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:55:44.227Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:55:44.227Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 3,
               "Title": "PurchaseController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\PurchaseController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\PurchaseController.cs",
               "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\PurchaseController.cs",
               "RelativeToolTip": "Wms.Api\\Controller\\PurchaseController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAQwDQAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-23T06:55:42.165Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 2,
               "Title": "ProductController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\ProductController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\ProductController.cs",
               "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\ProductController.cs",
               "RelativeToolTip": "Wms.Api\\Controller\\ProductController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAACMAAAAAAAAAAAAgwDQAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-23T06:55:38.792Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "TransferController.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\TransferController.cs",
-              "RelativeDocumentMoniker": "Wms.Api\\Controller\\TransferController.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\TransferController.cs",
-              "RelativeToolTip": "Wms.Api\\Controller\\TransferController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF8AAAAAAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "SalesOrderService.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\Sales\\SalesOrderService.cs",
+              "RelativeDocumentMoniker": "Wms.Application\\Services\\Sales\\SalesOrderService.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Application\\Services\\Sales\\SalesOrderService.cs",
+              "RelativeToolTip": "Wms.Application\\Services\\Sales\\SalesOrderService.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAwwBgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-22T12:52:52.868Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "PermissionController.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\PermissionController.cs",
-              "RelativeDocumentMoniker": "Wms.Api\\Controller\\PermissionController.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\PermissionController.cs",
-              "RelativeToolTip": "Wms.Api\\Controller\\PermissionController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:55:36.391Z",
+              "WhenOpened": "2025-12-23T06:02:05.451Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
+              "Title": "PurchaseService.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\Purchase\\PurchaseService.cs",
+              "RelativeDocumentMoniker": "Wms.Application\\Services\\Purchase\\PurchaseService.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Application\\Services\\Purchase\\PurchaseService.cs",
+              "RelativeToolTip": "Wms.Application\\Services\\Purchase\\PurchaseService.cs",
+              "ViewState": "AgIAAPAAAAAAAAAAAAAAAPgAAABJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T15:35:08.683Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IPurchaseService.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Interfaces\\Services\\Purchase\\IPurchaseService.cs",
+              "RelativeDocumentMoniker": "Wms.Application\\Interfaces\\Services\\Purchase\\IPurchaseService.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Application\\Interfaces\\Services\\Purchase\\IPurchaseService.cs",
+              "RelativeToolTip": "Wms.Application\\Interfaces\\Services\\Purchase\\IPurchaseService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T16:08:39.986Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
               "Title": "StockTakeController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\StockTakeController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\StockTakeController.cs",
@@ -316,12 +329,95 @@
               "RelativeToolTip": "Wms.Api\\Controller\\StockTakeController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-22T14:07:09.419Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-22T14:07:09.419Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 8,
+              "Title": "CategoryController.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\CategoryController.cs",
+              "RelativeDocumentMoniker": "Wms.Api\\Controller\\CategoryController.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\CategoryController.cs",
+              "RelativeToolTip": "Wms.Api\\Controller\\CategoryController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-23T06:54:30.725Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\AuthController.cs",
+              "RelativeDocumentMoniker": "Wms.Api\\Controller\\AuthController.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\AuthController.cs",
+              "RelativeToolTip": "Wms.Api\\Controller\\AuthController.cs",
+              "ViewState": "AgIAAC0AAAAAAAAAAAA7wEkAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-23T06:54:27.636Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "AuthSeeder.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
+              "RelativeDocumentMoniker": "Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
+              "RelativeToolTip": "Wms.Infrastructure\\Persistence\\Seed\\AuthSeeder.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHcAAABeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-23T06:57:17.909Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "UnitController.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\UnitController.cs",
+              "RelativeDocumentMoniker": "Wms.Api\\Controller\\UnitController.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\UnitController.cs",
+              "RelativeToolTip": "Wms.Api\\Controller\\UnitController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-23T06:57:04.161Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "WarehouseController.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\WarehouseController.cs",
+              "RelativeDocumentMoniker": "Wms.Api\\Controller\\WarehouseController.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\WarehouseController.cs",
+              "RelativeToolTip": "Wms.Api\\Controller\\WarehouseController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAABKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-23T06:57:05.628Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "TransferController.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\TransferController.cs",
+              "RelativeDocumentMoniker": "Wms.Api\\Controller\\TransferController.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\TransferController.cs",
+              "RelativeToolTip": "Wms.Api\\Controller\\TransferController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-22T12:52:52.868Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "PermissionController.cs",
+              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\PermissionController.cs",
+              "RelativeDocumentMoniker": "Wms.Api\\Controller\\PermissionController.cs",
+              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\PermissionController.cs",
+              "RelativeToolTip": "Wms.Api\\Controller\\PermissionController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-23T06:55:36.391Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
               "Title": "LocationController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\LocationController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\LocationController.cs",
@@ -329,12 +425,11 @@
               "RelativeToolTip": "Wms.Api\\Controller\\LocationController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:55:34.14Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:55:34.14Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 19,
               "Title": "InventoryController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\InventoryController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\InventoryController.cs",
@@ -342,12 +437,11 @@
               "RelativeToolTip": "Wms.Api\\Controller\\InventoryController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:55:32.746Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:55:32.746Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 20,
               "Title": "GoodsIssueController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\GoodsIssueController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\GoodsIssueController.cs",
@@ -355,12 +449,11 @@
               "RelativeToolTip": "Wms.Api\\Controller\\GoodsIssueController.cs",
               "ViewState": "AgIAACkAAAAAAAAAAAAUwEMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:54:33.016Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:54:33.016Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 21,
               "Title": "CustomerController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\CustomerController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\CustomerController.cs",
@@ -368,25 +461,11 @@
               "RelativeToolTip": "Wms.Api\\Controller\\CustomerController.cs",
               "ViewState": "AgIAAB4AAAAAAAAAAAAwwDYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:54:32.035Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:54:32.035Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "CategoryController.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\CategoryController.cs",
-              "RelativeDocumentMoniker": "Wms.Api\\Controller\\CategoryController.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\CategoryController.cs",
-              "RelativeToolTip": "Wms.Api\\Controller\\CategoryController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:54:30.725Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 22,
               "Title": "BrandController.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\BrandController.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Controller\\BrandController.cs",
@@ -394,25 +473,11 @@
               "RelativeToolTip": "Wms.Api\\Controller\\BrandController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:54:28.781Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:54:28.781Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "AuthController.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Controller\\AuthController.cs",
-              "RelativeDocumentMoniker": "Wms.Api\\Controller\\AuthController.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Api\\Controller\\AuthController.cs",
-              "RelativeToolTip": "Wms.Api\\Controller\\AuthController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:54:27.636Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 25,
               "Title": "InventoryService.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\Inventorys\\InventoryService.cs",
               "RelativeDocumentMoniker": "Wms.Application\\Services\\Inventorys\\InventoryService.cs",
@@ -420,12 +485,11 @@
               "RelativeToolTip": "Wms.Application\\Services\\Inventorys\\InventoryService.cs",
               "ViewState": "AgIAAI8AAAAAAAAAAAAIwNcAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:43:24.32Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:43:24.32Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 26,
               "Title": "StockTakeService.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\StockTake\\StockTakeService.cs",
               "RelativeDocumentMoniker": "Wms.Application\\Services\\StockTake\\StockTakeService.cs",
@@ -433,12 +497,11 @@
               "RelativeToolTip": "Wms.Application\\Services\\StockTake\\StockTakeService.cs",
               "ViewState": "AgIAAI0AAAAAAAAAAAAkwKQAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-22T13:59:40.394Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-22T13:59:40.394Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 30,
               "Title": "Stocktake.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Domain\\Entity\\Stocktake\\Stocktake.cs",
               "RelativeDocumentMoniker": "Wms.Domain\\Entity\\Stocktake\\Stocktake.cs",
@@ -450,7 +513,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 33,
               "Title": "AppDbContext.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Context\\AppDbContext.cs",
               "RelativeDocumentMoniker": "Wms.Infrastructure\\Persistence\\Context\\AppDbContext.cs",
@@ -462,7 +525,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 23,
               "Title": "TransferService.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\Transfer\\TransferService.cs",
               "RelativeDocumentMoniker": "Wms.Application\\Services\\Transfer\\TransferService.cs",
@@ -470,12 +533,11 @@
               "RelativeToolTip": "Wms.Application\\Services\\Transfer\\TransferService.cs",
               "ViewState": "AgIAAFUAAAAAAAAAAAAIwGQAAABtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-22T12:23:43.743Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-22T12:23:43.743Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 24,
               "Title": "TransferOrderDto.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\DTOS\\Transfer\\TransferOrderDto.cs",
               "RelativeDocumentMoniker": "Wms.Application\\DTOS\\Transfer\\TransferOrderDto.cs",
@@ -483,12 +545,11 @@
               "RelativeToolTip": "Wms.Application\\DTOS\\Transfer\\TransferOrderDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-22T12:22:19.271Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-22T12:22:19.271Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 27,
               "Title": "ServiceCollectionExtensions.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Api\\Extensions\\ServiceCollectionExtensions.cs",
               "RelativeDocumentMoniker": "Wms.Api\\Extensions\\ServiceCollectionExtensions.cs",
@@ -496,25 +557,11 @@
               "RelativeToolTip": "Wms.Api\\Extensions\\ServiceCollectionExtensions.cs",
               "ViewState": "AgIAAA8AAAAAAAAAAAAAABUAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-22T14:29:39.245Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-22T14:29:39.245Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "SalesOrderService.cs",
-              "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Services\\Sales\\SalesOrderService.cs",
-              "RelativeDocumentMoniker": "Wms.Application\\Services\\Sales\\SalesOrderService.cs",
-              "ToolTip": "D:\\NET\\Wms\\Wms.Application\\Services\\Sales\\SalesOrderService.cs",
-              "RelativeToolTip": "Wms.Application\\Services\\Sales\\SalesOrderService.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAwwBoAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:02:05.451Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 28,
               "Title": "ISalesOrderService.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Interfaces\\Services\\Sales\\ISalesOrderService.cs",
               "RelativeDocumentMoniker": "Wms.Application\\Interfaces\\Services\\Sales\\ISalesOrderService.cs",
@@ -522,12 +569,11 @@
               "RelativeToolTip": "Wms.Application\\Interfaces\\Services\\Sales\\ISalesOrderService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAABDAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T06:01:56.08Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-23T06:01:56.08Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 32,
               "Title": "StocktakeItemConfiguration.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Configurations\\Stocktake\\StocktakeItemConfiguration.cs",
               "RelativeDocumentMoniker": "Wms.Infrastructure\\Persistence\\Configurations\\Stocktake\\StocktakeItemConfiguration.cs",
@@ -539,7 +585,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 31,
               "Title": "StocktakeStatus.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Domain\\Enums\\Stocktake\\StocktakeStatus.cs",
               "RelativeDocumentMoniker": "Wms.Domain\\Enums\\Stocktake\\StocktakeStatus.cs",
@@ -551,7 +597,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 29,
               "Title": "IStockTakeService.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\Interfaces\\Services\\StockTake\\IStockTakeService.cs",
               "RelativeDocumentMoniker": "Wms.Application\\Interfaces\\Services\\StockTake\\IStockTakeService.cs",
@@ -563,7 +609,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 34,
               "Title": "StocktakeConfiguration.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Configurations\\Stocktake\\StocktakeConfiguration.cs",
               "RelativeDocumentMoniker": "Wms.Infrastructure\\Persistence\\Configurations\\Stocktake\\StocktakeConfiguration.cs",
@@ -575,7 +621,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 35,
               "Title": "StocktakeItem.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Domain\\Entity\\Stocktake\\StocktakeItem.cs",
               "RelativeDocumentMoniker": "Wms.Domain\\Entity\\Stocktake\\StocktakeItem.cs",
@@ -587,7 +633,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 36,
               "Title": "InventoryActionType.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Domain\\Enums\\Inventory\\InventoryActionType.cs",
               "RelativeDocumentMoniker": "Wms.Domain\\Enums\\Inventory\\InventoryActionType.cs",
@@ -599,7 +645,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 37,
               "Title": "SubmitCountStockTake.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\DTOS\\StockTake\\SubmitCountStockTake.cs",
               "RelativeDocumentMoniker": "Wms.Application\\DTOS\\StockTake\\SubmitCountStockTake.cs",
@@ -611,7 +657,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 38,
               "Title": "CreateStockTake.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\DTOS\\StockTake\\CreateStockTake.cs",
               "RelativeDocumentMoniker": "Wms.Application\\DTOS\\StockTake\\CreateStockTake.cs",
@@ -623,7 +669,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 39,
               "Title": "StockTakeDto.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\DTOS\\StockTake\\StockTakeDto.cs",
               "RelativeDocumentMoniker": "Wms.Application\\DTOS\\StockTake\\StockTakeDto.cs",
@@ -635,7 +681,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 40,
               "Title": "GoodsIssue.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Domain\\Entity\\Sales\\GoodsIssue.cs",
               "RelativeDocumentMoniker": "Wms.Domain\\Entity\\Sales\\GoodsIssue.cs",
@@ -647,7 +693,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 42,
               "Title": "TransferOrderItem.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Domain\\Entity\\Transfer\\TransferOrderItem.cs",
               "RelativeDocumentMoniker": "Wms.Domain\\Entity\\Transfer\\TransferOrderItem.cs",
@@ -659,7 +705,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 41,
               "Title": "TransferOrderItemDto.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Application\\DTOS\\Transfer\\TransferOrderItemDto.cs",
               "RelativeDocumentMoniker": "Wms.Application\\DTOS\\Transfer\\TransferOrderItemDto.cs",
@@ -671,7 +717,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 43,
               "Title": "TransferOrder.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Domain\\Entity\\Transfer\\TransferOrder.cs",
               "RelativeDocumentMoniker": "Wms.Domain\\Entity\\Transfer\\TransferOrder.cs",
@@ -683,7 +729,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 44,
               "Title": "TransferOrderConfiguration.cs",
               "DocumentMoniker": "D:\\NET\\Wms\\Wms.Infrastructure\\Persistence\\Configurations\\Transfer\\TransferOrderConfiguration.cs",
               "RelativeDocumentMoniker": "Wms.Infrastructure\\Persistence\\Configurations\\Transfer\\TransferOrderConfiguration.cs",

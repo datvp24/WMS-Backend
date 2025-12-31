@@ -1095,6 +1095,32 @@
     ]
   },
   {
+    "ContainingType": "Wms.Api.Controllers.PurchaseController",
+    "Method": "GetPOM0ById",
+    "RelativePath": "api/Purchase/pom0/{poId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "poId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Wms.Application.DTOS.Purchase.PurchaseOrderDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Wms.Api.Controllers.RoleController",
     "Method": "Create",
     "RelativePath": "api/Role",
