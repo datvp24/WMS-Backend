@@ -25,47 +25,55 @@ namespace Wms.Domain.Service.Sales
 
         public async Task<SalesOrderDto> CreateSOAsync(SalesOrderCreateDto dto)
         {
-            var entity = _mapper.Map<SalesOrder>(dto);
-
             // 1. Tự động sinh mã Code nếu Frontend không gửi lên
-            if (string.IsNullOrEmpty(entity.Code))
+            string code = dto.Code;
+            if (string.IsNullOrEmpty(code))
             {
                 string datePart = DateTime.Now.ToString("yyyyMMdd");
-                // Đếm số đơn trong ngày để lấy số thứ tự
                 int countToday = await _dbContext.SalesOrders
                     .CountAsync(x => x.CreatedAt.Date == DateTime.Today);
-                entity.Code = $"SO-{datePart}-{(countToday + 1).ToString("D4")}";
+                code = $"SO-{datePart}-{(countToday + 1).ToString("D4")}";
             }
 
-            entity.Status = "DRAFT";
-
-            // 2. Tính toán TotalPrice cho từng dòng Item (Rất quan trọng)
-            foreach (var item in entity.Items)
+            // 2. ⭐ Validate và kiểm tra inventory TRƯỚC KHI map sang entity
+            foreach (var itemDto in dto.Items)
             {
                 var inventory = await _dbContext.Inventories
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.ProductId == item.ProductId);
+                    .FirstOrDefaultAsync(x => x.Id == itemDto.InventoryId);
 
                 if (inventory == null)
-                    throw new Exception($"Không tìm thấy tồn kho cho sản phẩm {item.ProductId}");
+                    throw new Exception($"Không tìm thấy kho với ID {itemDto.InventoryId}");
+
+                // Kiểm tra productId có khớp không
+                if (inventory.ProductId != itemDto.ProductId)
+                    throw new Exception($"Kho {itemDto.InventoryId} không chứa sản phẩm {itemDto.ProductId}");
 
                 var availableQty = inventory.OnHandQuantity - inventory.LockedQuantity;
 
-                if (item.Quantity > availableQty)
+                if (itemDto.Quantity > availableQty)
                     throw new Exception(
-                        $"Sản phẩm {item.ProductId} chỉ còn {availableQty}"
+                        $"Sản phẩm {itemDto.ProductId} trong kho {itemDto.InventoryId} chỉ còn {availableQty}"
                     );
-
-                item.TotalPrice = item.Quantity * item.UnitPrice;
             }
 
+            // 3. ⭐ SAU KHI validate xong mới map sang entity
+            var entity = _mapper.Map<SalesOrder>(dto);
+            entity.Code = code;
+            entity.Status = "DRAFT";
+
+            // 4. Tính toán TotalPrice cho từng dòng Item
+            foreach (var item in entity.Items)
+            {
+                item.TotalPrice = item.Quantity * item.UnitPrice;
+            }
 
             entity.TotalAmount = entity.Items.Sum(i => i.TotalPrice);
 
             _dbContext.SalesOrders.Add(entity);
             await _dbContext.SaveChangesAsync();
 
-            // 3. Load thêm thông tin khách hàng để trả về DTO không bị null CustomerName
+            // 5. Load thêm thông tin khách hàng
             await _dbContext.Entry(entity).Reference(x => x.Customer).LoadAsync();
 
             return _mapper.Map<SalesOrderDto>(entity);

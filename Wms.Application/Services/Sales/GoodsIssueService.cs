@@ -193,6 +193,7 @@ namespace Wms.Application.Services.Sales
 
                 gi.Status = "COMPLETED";
                 gi.IssuedAt = DateTime.UtcNow;
+                //nếu muốn thêm phần complete nếu đủ số hàng thì thêm ở đây
 
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();

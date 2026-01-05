@@ -10,6 +10,8 @@ namespace Wms.Application.Services.Inventorys
     public class InventoryService : IInventoryService
     {
         private readonly AppDbContext _db;
+        public static readonly Guid RECEIVING_LOCATION_GUID = new Guid("11111111-2222-3333-4444-555555555555");
+
         public InventoryService(AppDbContext db) => _db = db;
 
         // =========================
@@ -84,19 +86,22 @@ namespace Wms.Application.Services.Inventorys
         // =========================
         // ADJUST INVENTORY
         // =========================
-        public async Task AdjustAsync(
-            Guid warehouseId,
-            Guid locationId,
-            int productId,
-            decimal qtyChange,
-            InventoryActionType actionType,
-            string? refCode,
-            string? note = null)
+        public async Task AdjustAsync(  Guid warehouseId,
+                                        Guid? locationId,
+                                        int productId,
+                                        decimal qtyChange,
+                                        InventoryActionType actionType,
+                                        string? refCode,
+                                        string? note = null) 
         {
+
+            // location tạm nếu null
+            var effectiveLocationId = locationId ?? RECEIVING_LOCATION_GUID;
+
             var inv = await _db.Inventories
                 .FirstOrDefaultAsync(x =>
                     x.WarehouseId == warehouseId &&
-                    x.LocationId == locationId &&
+                    x.LocationId == effectiveLocationId &&
                     x.ProductId == productId);
 
             if (inv == null)
@@ -105,11 +110,11 @@ namespace Wms.Application.Services.Inventorys
                 {
                     Id = Guid.NewGuid(),
                     WarehouseId = warehouseId,
-                    LocationId = locationId,
+                    LocationId = effectiveLocationId,
                     ProductId = productId,
                     OnHandQuantity = 0,
                     LockedQuantity = 0,
-                    InTransitQuantity = 0
+                    InTransitQuantity = 0,
                 };
                 _db.Inventories.Add(inv);
             }
@@ -124,7 +129,7 @@ namespace Wms.Application.Services.Inventorys
             {
                 Id = Guid.NewGuid(),
                 WarehouseId = warehouseId,
-                LocationId = locationId,
+                LocationId = effectiveLocationId,
                 ProductId = productId,
                 QuantityChange = qtyChange,
                 ActionType = actionType,
@@ -135,6 +140,7 @@ namespace Wms.Application.Services.Inventorys
 
             await _db.SaveChangesAsync();
         }
+
 
         // =========================
         // LOCK STOCK

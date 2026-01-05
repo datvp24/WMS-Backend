@@ -97,6 +97,33 @@ public class ProductService : IProductService
                 IsActive = p.IsActive
             }).ToListAsync();
     }
+    public async Task<List<ProductDto>> GetAllBySupplierAsync(int dto)
+    {
+        // Where trước Select để tối ưu
+        var prodList = await _db.Products
+            .Where(p => p.SupplierId == dto)
+            .Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                Description = p.Description,
+                CategoryId = p.CategoryId,
+                UnitId = p.UnitId,
+                BrandId = p.BrandId,
+                SupplierId = p.SupplierId,
+                IsActive = p.IsActive
+            })
+            .ToListAsync();
+
+        // Check list rỗng (không phải null)
+        if (prodList.Count == 0) // hoặc: !prodList.Any()
+        {
+            throw new KeyNotFoundException($"Không tìm thấy sản phẩm của nhà cung cấp ID: {dto}");
+        }
+
+        return prodList;
+    }
 
     public async Task<List<ProductDto>> FilterAsync(ProductFilterDto f)
     {

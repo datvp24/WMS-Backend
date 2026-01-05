@@ -13,6 +13,7 @@ public interface IPurchaseService
 
     // GOODS RECEIPT
     Task<GoodsReceiptDto> CreateGRAsync(GoodsReceiptDto dto);
+    Task IncomingStockCount(GoodsReceiptItem1Dto dto);
     Task<List<GoodsReceiptDto>> GetGRsAsync(Guid? poId = null, int page = 1, int pageSize = 20);
     Task CancelGRAsync(Guid grId);
 }

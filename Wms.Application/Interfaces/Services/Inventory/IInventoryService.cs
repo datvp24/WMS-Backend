@@ -31,7 +31,7 @@ namespace Wms.Application.Interfaces.Services.Inventory
         // =========================
         Task AdjustAsync(
             Guid warehouseId,
-            Guid locationId,
+            Guid? locationId,
             int productId,
             decimal qtyChange,
             InventoryActionType actionType,

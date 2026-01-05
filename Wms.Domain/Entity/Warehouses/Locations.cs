@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wms.Domain.Enums.location;
 
 namespace Wms.Domain.Entity.Warehouses
 {
@@ -30,7 +31,7 @@ namespace Wms.Domain.Entity.Warehouses
         [MaxLength(250)]
         public string Description { get; set; }
 
-
+        public LocationType Type { get; set; }
         public bool IsActive { get; set; } = true;
 
 

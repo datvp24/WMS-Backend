@@ -113,8 +113,6 @@ namespace Wms.Infrastructure.Persistence.Configurations.Purchase
             builder.Property(x => x.Quantity)
                    .IsRequired();
 
-            builder.Property(x => x.LocationId)
-                   .IsRequired();
 
             builder.Property(x => x.CreatedAt)
                    .IsRequired();

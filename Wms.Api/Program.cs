@@ -71,6 +71,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();      // Auto migrate DB on start
     await AuthSeeder.SeedAsync(db);        // Seed admin + roles + permissions
+    await OtherSeeder.SeedAsync(db);
 }
 
 app.Run();

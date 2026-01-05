@@ -52,6 +52,12 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> GetAll()
         => Ok(await _service.GetAllAsync());
 
+    [HttpGet("By-Supplier/{supplierId}")]
+    [HasPermission("product.view")]
+    public async Task<IActionResult> GetAllBySup(int supplierId)
+        => Ok(await _service.GetAllBySupplierAsync(supplierId));
+
+
     // FILTER
     [HttpPost("filter")]
     [HasPermission("product.view")]

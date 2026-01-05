@@ -59,7 +59,31 @@ public class PurchaseController : ControllerBase
         var pos = await _purchaseService.GetPOsAsync(page, pageSize, status);
         return Ok(pos);
     }
+    [HttpPost("receive-item")]
+    [HasPermission("purchase.gr.receive")]
+    public async Task<IActionResult> ReceiveItem([FromBody] GoodsReceiptItem1Dto dto)
+    {
+        // 1. Kiểm tra đầu vào cơ bản
+        if (dto == null || dto.Received_Qty <= 0)
+        {
+            return BadRequest("Số lượng nhập kho phải lớn hơn 0.");
+        }
 
+        try
+        {
+            // 2. Gọi hàm xử lý logic mà chúng ta đã viết
+            await _purchaseService.IncomingStockCount(dto);
+
+            // 3. Trả về kết quả thành công
+            return Ok(new { message = "Cập nhật số lượng nhập kho thành công." });
+        }
+        catch (Exception ex)
+        {
+            // 4. Xử lý lỗi nếu không tìm thấy hàng hoặc lỗi hệ thống
+            // Bạn có thể log lỗi ở đây (logger.LogError...)
+            return BadRequest(new { message = ex.Message });
+        }
+    }
     [HttpPost("po/{poId}/approve")]
     [HasPermission("purchase.po.approve")]
     public async Task<ActionResult<PurchaseOrderDto>> ApprovePO(Guid poId)

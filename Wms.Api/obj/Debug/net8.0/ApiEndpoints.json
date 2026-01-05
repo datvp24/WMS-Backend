@@ -836,6 +836,22 @@
   },
   {
     "ContainingType": "Wms.Api.Controllers.ProductController",
+    "Method": "GetAllBySup",
+    "RelativePath": "api/Product/By-Supplier/{supplierId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "supplierId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.ProductController",
     "Method": "Filter",
     "RelativePath": "api/Product/filter",
     "HttpMethod": "POST",
@@ -1119,6 +1135,22 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.PurchaseController",
+    "Method": "ReceiveItem",
+    "RelativePath": "api/Purchase/receive-item",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOS.Purchase.GoodsReceiptItem1Dto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "Wms.Api.Controllers.RoleController",

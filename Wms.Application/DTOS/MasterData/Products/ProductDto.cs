@@ -1,4 +1,6 @@
-﻿namespace Wms.Application.DTOs.MasterData.Products;
+﻿using System.Runtime.CompilerServices;
+
+namespace Wms.Application.DTOs.MasterData.Products;
 
 public class ProductDto
 {
@@ -14,4 +16,8 @@ public class ProductDto
 
     public bool IsActive { get; set; }
     public DateTime CreateAt { get; set; }
+}
+public class ProductSupDto
+{
+    public int SupplierId { get; set; }
 }

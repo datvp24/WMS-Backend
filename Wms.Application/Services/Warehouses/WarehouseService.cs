@@ -6,8 +6,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Wms.Application.DTOS.Warehouse;
 using Wms.Application.Interfaces.Services.Warehouse;
-using Wms.Domain.Entity.Warehouses;
 using Wms.Application.Services.Warehouses;
+using Wms.Domain.Entity.Warehouses;
+using Wms.Domain.Enums.location;
 using Wms.Infrastructure.Persistence.Context;
 
 
@@ -172,6 +173,7 @@ namespace Wms.Application.Services.Warehouses
             var entity = new Location
             {
                 WarehouseId = dto.WarehouseId,
+                Type = dto.Type,
                 Code = dto.Code.Trim().ToUpperInvariant(),
                 Description = dto.Description
             };
@@ -180,6 +182,22 @@ namespace Wms.Application.Services.Warehouses
             _db.Locations.Add(entity);
             await _db.SaveChangesAsync();
             return Map(entity);
+        }
+        public async Task<Guid> GetReceivingLocationId(Guid warehouseId)
+        {
+            var locationId = await _db.Locations
+                .Where(l =>
+                    l.WarehouseId == warehouseId &&
+                    l.Type == LocationType.Receiving &&
+                    l.IsActive)
+                .Select(l => l.Id)
+                .FirstOrDefaultAsync();
+
+            if (locationId == Guid.Empty)
+                throw new Exception(
+                    $"Receiving location not configured for warehouse {warehouseId}");
+
+            return locationId;
         }
 
 
@@ -219,6 +237,7 @@ namespace Wms.Application.Services.Warehouses
             // cập nhật description + isActive
             if (dto.Description != null) entity.Description = dto.Description;
             if (dto.IsActive.HasValue) entity.IsActive = dto.IsActive.Value;
+            entity.Type = dto.LocationType;
 
             entity.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
@@ -281,6 +300,7 @@ namespace Wms.Application.Services.Warehouses
             Code = l.Code,
             Description = l.Description,
             IsActive = l.IsActive,
+            Type    = l.Type,
             CreatedAt = l.CreatedAt,
             UpdatedAt = l.UpdatedAt
         };

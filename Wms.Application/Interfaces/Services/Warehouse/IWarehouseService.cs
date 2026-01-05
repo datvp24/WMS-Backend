@@ -20,6 +20,7 @@ namespace Wms.Application.Interfaces.Services.Warehouse
         // Locations
         Task<LocationDto> CreateLocationAsync(LocationCreateDto dto);
         Task<LocationDto> UpdateLocationAsync(LocationUpdateDto dto);
+        Task<Guid> GetReceivingLocationId(Guid warehouseId);
         Task<bool> DeleteLocationAsync(Guid id);
         Task<IEnumerable<LocationDto>> GetLocationsByWarehouseAsync(Guid warehouseId);
         Task<LocationDto> GetLocationByIdAsync(Guid id);

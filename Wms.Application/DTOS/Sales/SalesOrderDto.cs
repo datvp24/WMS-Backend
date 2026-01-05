@@ -56,6 +56,7 @@ public class SalesOrderItemCreateDto
     [Required]
     [Range(0, double.MaxValue)]
     public decimal UnitPrice { get; set; }
+    public Guid InventoryId { get; set; }
 }
 
 // DTO dùng để cập nhật SO (có thể chỉ cho phép thay đổi qty/unitprice trước khi lock stock)

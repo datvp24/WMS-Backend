@@ -1,11 +1,15 @@
-﻿namespace Wms.Domain.Entity.Purchase;
+﻿using Wms.Domain.Enums.Purchase;
+
+namespace Wms.Domain.Entity.Purchase;
 public class GoodsReceiptItem
 {
     public Guid Id { get; set; }
     public Guid GoodsReceiptId { get; set; }
     public int ProductId { get; set; }
     public int Quantity { get; set; }
-    public Guid LocationId { get; set; }
+    public Guid POIid { get; set; }
+    public int Received_Qty { get; set; }
+    public GRIStatus Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

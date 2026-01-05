@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Wms.Domain.Enums.location;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace Wms.Application.DTOS.Warehouse
         [Required, MaxLength(50)]
         public string Code { get; set; }
 
-
+        public LocationType Type {  get; set; }
         public string Description { get; set; }
     }
 
@@ -28,6 +29,7 @@ namespace Wms.Application.DTOS.Warehouse
 
 
         public string Description { get; set; }
+        public LocationType LocationType { get; set; }
         public bool? IsActive { get; set; }
         public string? Code { get; set; }
     }
@@ -37,6 +39,7 @@ namespace Wms.Application.DTOS.Warehouse
     {
         public Guid Id { get; set; }
         public Guid WarehouseId { get; set; }
+        public LocationType Type { get; set; }
         public string Code { get; set; }
         public string Description { get; set; }
         public bool IsActive { get; set; }
