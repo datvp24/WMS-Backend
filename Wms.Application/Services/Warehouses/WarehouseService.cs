@@ -47,6 +47,17 @@ namespace Wms.Application.Services.Warehouses
             return Map(entity);
         }
 
+        public async Task<List<Warehouse>> GetWarehousesByProduct(WarehousesbyProduct dto)
+        {
+            var listwarehouses = new List<Warehouse>();
+            var inventory = _db.Inventories.Where(s => s.ProductId == dto.ProductId);
+            foreach (var item in inventory)
+            {
+                var warehouse = await _db.Warehouses.FirstOrDefaultAsync(s => s.Id == item.WarehouseId);
+                listwarehouses.Add(warehouse);
+            }
+            return listwarehouses;
+        }
 
         public async Task<WarehouseDto> UpdateAsync(WarehouseUpdateDto dto)
         {
@@ -198,6 +209,21 @@ namespace Wms.Application.Services.Warehouses
                     $"Receiving location not configured for warehouse {warehouseId}");
 
             return locationId;
+        }
+        public async Task<Location> GetIssuedLocationId(Guid warehouseId)
+        {
+            var location = await _db.Locations
+                .Where(l =>
+                    l.WarehouseId == warehouseId &&
+                    l.Type == LocationType.Shipping &&
+                    l.IsActive)
+                .FirstOrDefaultAsync();  // ← Lấy cả object Location
+
+            if (location == null)  // ← Check null thay vì Guid.Empty
+                throw new Exception(
+                    $"Shipping location not configured for warehouse {warehouseId}");
+
+            return location;
         }
 
 

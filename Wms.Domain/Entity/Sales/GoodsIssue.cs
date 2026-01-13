@@ -13,10 +13,20 @@ namespace Wms.Domain.Entity.Sales
         public string Code { get; set; } = null!;
         public Guid WarehouseId { get; set; }
         public Warehouse Warehouse { get; set; } = null!;
-
-        public string Status { get; set; } = "PENDING"; // PENDING, COMPLETED
+        public GIStatus Status { get; set; }
         public DateTime IssuedAt { get; set; } = DateTime.UtcNow; // EF sẽ tự điền giá trị
+        public DateTime CreateAt { get; set; }
+        public DateTime? UpdateAt { get; set; }
 
         public ICollection<GoodsIssueItem> Items { get; set; } = new List<GoodsIssueItem>();
+    }
+    public enum GIStatus
+    {
+        Pending = 0,
+        Approve = 1,
+        Partically_Issued = 2,
+        Complete = 3,
+        Rejected = 4,
+        Picking = 5,
     }
 }

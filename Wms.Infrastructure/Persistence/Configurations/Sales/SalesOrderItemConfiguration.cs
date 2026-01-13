@@ -11,8 +11,6 @@ namespace Wms.Infrastructure.Persistence.Configurations.Sales
             builder.ToTable("SalesOrderItems");
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)");
-            builder.Property(x => x.TotalPrice).HasColumnType("decimal(18,2)");
 
             builder.HasOne(x => x.SalesOrder)
                    .WithMany(x => x.Items)

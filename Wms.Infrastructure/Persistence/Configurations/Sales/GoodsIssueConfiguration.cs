@@ -16,9 +16,7 @@ public class GoodsIssueConfiguration : IEntityTypeConfiguration<GoodsIssue>
         builder.HasIndex(x => x.Code).IsUnique();
 
         // Status
-        builder.Property(x => x.Status)
-               .HasMaxLength(20)
-               .HasDefaultValue("PENDING");
+
 
         // IssuedAt
         // Dùng kiểu datetime chuẩn MySQL để tránh lỗi Invalid default

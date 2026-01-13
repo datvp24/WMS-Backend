@@ -1,5 +1,4 @@
-﻿// File: Services/LocationCodeValidator.cs
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 
 namespace Wms.Application.Services.Warehouses { 

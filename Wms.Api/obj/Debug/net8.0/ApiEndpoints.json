@@ -390,166 +390,6 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "Wms.Api.Controllers.GoodsIssueController",
-    "Method": "Create",
-    "RelativePath": "api/GoodsIssue",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "dto",
-        "Type": "Wms.Application.DTOS.Sales.GoodsIssueCreateDto",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "Wms.Application.DTOS.Sales.GoodsIssueDto",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "Wms.Api.Controllers.GoodsIssueController",
-    "Method": "Query",
-    "RelativePath": "api/GoodsIssue",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "Code",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "SalesOrderId",
-        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "Status",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "IssuedFrom",
-        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "IssuedTo",
-        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "PageIndex",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "PageSize",
-        "Type": "System.Int32",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.List\u00601[[Wms.Application.DTOS.Sales.GoodsIssueDto, Wms.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "Wms.Api.Controllers.GoodsIssueController",
-    "Method": "Get",
-    "RelativePath": "api/GoodsIssue/{id}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "Wms.Application.DTOS.Sales.GoodsIssueDto",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "Wms.Api.Controllers.GoodsIssueController",
-    "Method": "Cancel",
-    "RelativePath": "api/GoodsIssue/{id}/cancel",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "Wms.Application.DTOS.Sales.GoodsIssueDto",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "Wms.Api.Controllers.GoodsIssueController",
-    "Method": "Complete",
-    "RelativePath": "api/GoodsIssue/{id}/complete",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "Wms.Application.DTOS.Sales.GoodsIssueDto",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
     "ContainingType": "Wms.Api.Controllers.InventoryController",
     "Method": "Query",
     "RelativePath": "api/Inventory",
@@ -614,6 +454,37 @@
   },
   {
     "ContainingType": "Wms.Api.Controllers.InventoryController",
+    "Method": "GetAvailableLocations",
+    "RelativePath": "api/Inventory/available-locations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "warehouseId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[Wms.Application.DTOS.Warehouse.LocationQtyDto, Wms.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.InventoryController",
     "Method": "GetByLocation",
     "RelativePath": "api/Inventory/location/{locationId}",
     "HttpMethod": "GET",
@@ -671,6 +542,22 @@
       {
         "Name": "productId",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.InventoryController",
+    "Method": "Putaway",
+    "RelativePath": "api/Inventory/putaway",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOs.Inventorys.PutawayDto",
         "IsRequired": true
       }
     ],
@@ -845,6 +732,22 @@
       {
         "Name": "supplierId",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.ProductController",
+    "Method": "GetByType",
+    "RelativePath": "api/Product/by-type",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOs.MasterData.Products.ProductTypeDto",
         "IsRequired": true
       }
     ],
@@ -1278,7 +1181,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "Wms.Application.DTOS.Sales.SalesOrderCreateDto",
+        "Type": "Wms.Application.DTOS.Sales.SalesOrderDto",
         "IsRequired": true
       }
     ],
@@ -1352,37 +1255,6 @@
   },
   {
     "ContainingType": "Wms.Api.Controllers.SalesOrderController",
-    "Method": "Update",
-    "RelativePath": "api/SalesOrder/{id}",
-    "HttpMethod": "PUT",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "dto",
-        "Type": "Wms.Application.DTOS.Sales.SalesOrderUpdateDto",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "Wms.Application.DTOS.Sales.SalesOrderDto",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "Wms.Api.Controllers.SalesOrderController",
     "Method": "Get",
     "RelativePath": "api/SalesOrder/{id}",
     "HttpMethod": "GET",
@@ -1419,11 +1291,6 @@
         "Name": "id",
         "Type": "System.Guid",
         "IsRequired": true
-      },
-      {
-        "Name": "managerId",
-        "Type": "System.Guid",
-        "IsRequired": false
       }
     ],
     "ReturnTypes": [
@@ -1463,6 +1330,125 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.SalesOrderController",
+    "Method": "GetGoodsIssue",
+    "RelativePath": "api/SalesOrder/goods-issue/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Wms.Application.DTOS.Sales.GoodsIssueDetailDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.SalesOrderController",
+    "Method": "QueryGoodsIssues",
+    "RelativePath": "api/SalesOrder/goodsissues",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "Code",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "SalesOrderId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "WarehouseId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "Status",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "IssuedFrom",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "IssuedTo",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageIndex",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[Wms.Application.DTOS.Sales.GoodsIssueDto, Wms.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.SalesOrderController",
+    "Method": "Issue",
+    "RelativePath": "api/SalesOrder/issue",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOS.Sales.IssueGoodsDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Wms.Api.Controllers.SalesOrderController",
+    "Method": "Picking",
+    "RelativePath": "api/SalesOrder/picking",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOS.Sales.GoodsIssueItemDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "Wms.Api.Controllers.StockTakeController",
@@ -2050,6 +2036,22 @@
       {
         "Name": "id",
         "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WarehousesController",
+    "Method": "GetWarehouseByProduct",
+    "RelativePath": "api/Warehouses/warehousebyid",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Wms.Application.DTOS.Warehouse.WarehousesbyProduct",
         "IsRequired": true
       }
     ],

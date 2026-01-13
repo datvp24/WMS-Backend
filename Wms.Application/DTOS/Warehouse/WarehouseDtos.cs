@@ -17,7 +17,10 @@ namespace Wms.Application.DTOS.Warehouse
         public string Address { get; set; }
     }
 
-
+    public class WarehousesbyProduct
+    {
+        public int ProductId {  get; set; }
+    }
     public class WarehouseUpdateDto
     {
         [Required]

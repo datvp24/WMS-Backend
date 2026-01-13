@@ -7,11 +7,14 @@ namespace Wms.Application.Interfaces.Service.Sales
 {
     public interface ISalesOrderService
     {
-        Task<SalesOrderDto> CreateSOAsync(SalesOrderCreateDto dto);
-        Task<SalesOrderDto> ApproveSOAsync(Guid soId, Guid managerId);
+        Task<SalesOrderDto> CreateSOAsync(SalesOrderDto dto);
+        Task<SalesOrderDto> ApproveSOAsync(Guid soId);
         Task<SalesOrderDto> RejectSOAsync(Guid soId);
-        Task<SalesOrderDto> UpdateSOAsync(SalesOrderUpdateDto dto);
         Task<SalesOrderDto> GetSOAsync(Guid soId);
+        Task OutgoingStockCount(IssueGoodsDto dto);
+        Task<List<GoodsIssueDto>> QueryGoodsIssuesAsync(GoodsIssueQuery1Dto dto);
         Task<List<SalesOrderDto>> QuerySOsAsync(SalesOrderQueryDto dto);
+        Task Picking(GoodsIssueItemDto dto);
+        Task<GoodsIssueDetailDto?> GetGoodsIssueDetailAsync(Guid goodsIssueId);
     }
 }

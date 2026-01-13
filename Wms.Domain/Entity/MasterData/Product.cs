@@ -10,6 +10,7 @@ public class Product
     public string? Description { get; set; }
 
     public bool IsActive { get; set; } = true;
+    public ProductType Type { get; set; }
 
     // Foreign Keys
     public int CategoryId { get; set; }
@@ -24,4 +25,9 @@ public class Product
     public Supplier Supplier { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+public enum ProductType
+{
+    Material = 0,
+    Production = 1,
 }

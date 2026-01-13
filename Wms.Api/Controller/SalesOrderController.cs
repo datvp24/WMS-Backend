@@ -2,9 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Wms.Api.Middlewares; // <-- import HasPermission
 using Wms.Application.DTOS.Sales;
 using Wms.Application.Interfaces.Service.Sales;
-using Wms.Api.Middlewares; // <-- import HasPermission
+using Wms.Application.Interfaces.Services.Sales;
 
 namespace Wms.Api.Controllers
 {
@@ -22,21 +23,31 @@ namespace Wms.Api.Controllers
         // CREATE
         [HttpPost]
         [HasPermission("salesorder.create")]
-        public async Task<ActionResult<SalesOrderDto>> Create([FromBody] SalesOrderCreateDto dto)
+        public async Task<ActionResult<SalesOrderDto>> Create([FromBody] SalesOrderDto dto)
         {
             var result = await _salesOrderService.CreateSOAsync(dto);
             return Ok(result);
         }
-
-        // UPDATE
-        [HttpPut("{id}")]
-        [HasPermission("salesorder.update")]
-        public async Task<ActionResult<SalesOrderDto>> Update(Guid id, [FromBody] SalesOrderUpdateDto dto)
+        [HasPermission("salesorder.view")]
+        [HttpGet("goods-issue/{id}")]
+        public async Task<ActionResult<GoodsIssueDetailDto>> GetGoodsIssue(Guid id)
         {
-            if (id != dto.Id) return BadRequest("ID mismatch");
-            var result = await _salesOrderService.UpdateSOAsync(dto);
+            var result = await _salesOrderService.GetGoodsIssueDetailAsync(id);
+            if (result == null)
+                return NotFound("Goods Issue not found");
+
             return Ok(result);
         }
+
+        [HasPermission("salesorder.view")]
+        [HttpGet("goodsissues")]
+        public async Task<ActionResult<List<GoodsIssueDto>>> QueryGoodsIssues([FromQuery] GoodsIssueQuery1Dto dto)
+        {
+            var result = await _salesOrderService.QueryGoodsIssuesAsync(dto);
+            return Ok(result);
+        }
+
+        // UPDATE
 
         // GET BY ID
         [HttpGet("{id}")]
@@ -59,12 +70,32 @@ namespace Wms.Api.Controllers
         // APPROVE
         [HttpPost("{id}/approve")]
         [HasPermission("salesorder.approve")]
-        public async Task<ActionResult<SalesOrderDto>> Approve(Guid id, [FromQuery] Guid managerId)
+        public async Task<ActionResult<SalesOrderDto>> Approve(Guid id)
         {
-            var result = await _salesOrderService.ApproveSOAsync(id, managerId);
+            var result = await _salesOrderService.ApproveSOAsync(id);
             return Ok(result);
         }
-
+        [HttpPost("issue")]
+        [HasPermission("salesorder.Issue")]
+        public async Task<IActionResult> Issue([FromBody] IssueGoodsDto dto)
+        {
+            try
+            {
+                await _salesOrderService.OutgoingStockCount(dto);
+                return Ok(new { Message = "Issued successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { ex.Message });
+            }
+        }
+        [HttpPost("picking")]
+        [HasPermission("salesorder.picking")]
+        public async Task<IActionResult> Picking([FromBody] GoodsIssueItemDto dto)
+        {
+            await _salesOrderService.Picking(dto);
+            return Ok();
+        }
         // REJECT
         [HttpPost("{id}/reject")]
         [HasPermission("salesorder.reject")]

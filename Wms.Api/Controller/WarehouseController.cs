@@ -22,6 +22,13 @@ public class WarehousesController : ControllerBase
         var res = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = res.Id }, res);
     }
+    [HttpGet("warehousebyid")]
+    [HasPermission("warehouse.view")]
+    public async Task<IActionResult> GetWarehouseByProduct([FromBody] WarehousesbyProduct dto)
+    {
+        var res = await _service.GetWarehousesByProduct(dto);
+        return Ok(res);
+    }
 
     // UPDATE
     [HttpPut("{id:guid}")]

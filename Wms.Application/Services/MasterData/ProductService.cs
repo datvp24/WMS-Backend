@@ -26,6 +26,7 @@ public class ProductService : IProductService
             Name = dto.Name,
             Description = dto.Description,
             CategoryId = dto.CategoryId,
+            Type = dto.Type,
             UnitId = dto.UnitId,
             BrandId = dto.BrandId,
             SupplierId = dto.SupplierId
@@ -43,6 +44,7 @@ public class ProductService : IProductService
 
         product.Name = dto.Name;
         product.Code = dto.Code;
+        product.Type = dto.Type;
         product.Description = dto.Description;
         product.CategoryId = dto.CategoryId;
         product.UnitId = dto.UnitId;
@@ -72,6 +74,7 @@ public class ProductService : IProductService
             Id = p.Id,
             Code = p.Code,
             Name = p.Name,
+            Type = p.Type,
             Description = p.Description,
             CategoryId = p.CategoryId,
             UnitId = p.UnitId,
@@ -91,6 +94,7 @@ public class ProductService : IProductService
                 Name = p.Name,
                 Description = p.Description,
                 CategoryId = p.CategoryId,
+                Type = p.Type,
                 UnitId = p.UnitId,
                 BrandId = p.BrandId,
                 SupplierId = p.SupplierId,
@@ -110,6 +114,7 @@ public class ProductService : IProductService
                 Description = p.Description,
                 CategoryId = p.CategoryId,
                 UnitId = p.UnitId,
+                Type = p.Type,
                 BrandId = p.BrandId,
                 SupplierId = p.SupplierId,
                 IsActive = p.IsActive
@@ -124,7 +129,33 @@ public class ProductService : IProductService
 
         return prodList;
     }
+    public async Task<List<ProductDto>> GetAllByType(ProductTypeDto dto)
+    {
+        var prodList = await _db.Products
+            .Where(p => p.Type == dto.Type)
+            .Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                Description = p.Description,
+                CategoryId = p.CategoryId,
+                UnitId = p.UnitId,
+                Type = p.Type,
+                BrandId = p.BrandId,
+                SupplierId = p.SupplierId,
+                IsActive = p.IsActive
+            })
+            .ToListAsync();
 
+        // Check list rỗng (không phải null)
+        if (prodList.Count == 0) // hoặc: !prodList.Any()
+        {
+            throw new KeyNotFoundException($"Không tìm thấy sản phẩm thuộc loại: {dto.Type}");
+        }
+
+        return prodList;
+    }
     public async Task<List<ProductDto>> FilterAsync(ProductFilterDto f)
     {
         var q = _db.Products.AsQueryable();
@@ -156,6 +187,7 @@ public class ProductService : IProductService
                 CategoryId = x.CategoryId,
                 UnitId = x.UnitId,
                 BrandId = x.BrandId,
+                Type = x.Type,
                 SupplierId = x.SupplierId,
                 IsActive = x.IsActive
             })

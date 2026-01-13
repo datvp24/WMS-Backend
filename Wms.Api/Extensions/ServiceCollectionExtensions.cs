@@ -12,8 +12,6 @@ using Wms.Application.Services.MasterData;
 using Wms.Application.Services.Purchase;
 using Wms.Application.Services.System;
 using Wms.Application.Services.Warehouses;
-using Wms.Application.Services.Sales;
-
 using Wms.Application.Services.Transfer;
 using Wms.Application.Interfaces.Service.Sales;
 using Wms.Domain.Service.Sales;
@@ -53,7 +51,6 @@ namespace Wms.Api.Extensions // Đảm bảo đúng namespace của API project
             services.AddScoped<IPurchaseService, PurchaseService>();
             //SALES
             services.AddScoped<ISalesOrderService, SalesOrderService>();
-            services.AddScoped<IGoodsIssueService, GoodsIssueService>();
             //TRANSFER
             services.AddScoped<ITransferService, TransferService>();
 

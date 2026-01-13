@@ -2,6 +2,7 @@
 using Wms.Api.Middlewares;
 using Wms.Application.DTOs.MasterData.Products;
 using Wms.Application.Interfaces.Services.MasterData;
+using Wms.Application.Services.MasterData;
 
 namespace Wms.Api.Controllers;
 
@@ -52,6 +53,27 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> GetAll()
         => Ok(await _service.GetAllAsync());
 
+    [HasPermission("product.view")]
+    [HttpPost("by-type")]
+    public async Task<IActionResult> GetByType([FromBody] ProductTypeDto dto)
+    {
+        if (dto == null)
+            return BadRequest("DTO không được null");
+
+        try
+        {
+            var products = await _service.GetAllByType(dto);
+            return Ok(products); 
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = ex.Message });
+        }
+    }
     [HttpGet("By-Supplier/{supplierId}")]
     [HasPermission("product.view")]
     public async Task<IActionResult> GetAllBySup(int supplierId)

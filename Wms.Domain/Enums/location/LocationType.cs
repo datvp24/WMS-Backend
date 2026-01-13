@@ -11,6 +11,7 @@ namespace Wms.Domain.Enums.location
         Receiving = 1,
         Storage = 2,
         Shipping = 3,
+        Picking = 6,
         Damage = 4,
         Return = 5
     }

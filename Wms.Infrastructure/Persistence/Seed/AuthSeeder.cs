@@ -54,6 +54,8 @@ public static class AuthSeeder
                 new Permission { Code = "inventory.adjust", Description = "Adjust inventory" },
                 new Permission { Code = "inventory.lock", Description = "Lock inventory" },
                 new Permission { Code = "inventory.unlock", Description = "Unlock inventory" },
+                new Permission { Code = "inventory.putaway", Description = "putaway inventory" },
+
 
                 // Locations
                 new Permission { Code = "location.view", Description = "View locations" },
@@ -122,6 +124,7 @@ public static class AuthSeeder
                 new Permission { Code = "salesorder.update", Description = "Update sales orders" },
                 new Permission { Code = "salesorder.approve", Description = "Approve sales orders" },
                 new Permission { Code = "salesorder.reject", Description = "Reject sales orders" },
+                new Permission { Code = "salesorder.Issue", Description = "Issue sales orders" },
 
                 // GoodsIssue
                 new Permission { Code = "goodsissue.view", Description = "View goods issue" },

@@ -113,7 +113,7 @@ public class TransferService : ITransferService
                     warehouseId: transfer.ToWarehouseId,
                     locationId: item.ToLocationId,
                     productId: item.ProductId,
-                    qtyChange: item.Quantity, // cộng vào kho đích
+                    qtyChange: item.Quantity, 
                     actionType: InventoryActionType.TransferIn,
                     refCode: transfer.Code
                 );

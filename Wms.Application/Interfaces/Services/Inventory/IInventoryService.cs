@@ -1,4 +1,5 @@
 ﻿using Wms.Application.DTOs.Inventorys;
+using Wms.Application.DTOS.Warehouse;
 using Wms.Domain.Enums.Inventory;
 
 namespace Wms.Application.Interfaces.Services.Inventory
@@ -18,8 +19,9 @@ namespace Wms.Application.Interfaces.Services.Inventory
             => QueryAsync(new InventoryQueryDto { LocationId = locationId });
 
         Task<InventoryDto?> GetAsync(Guid id);
+        Task PutAway(PutawayDto dto);
         Task<List<InventoryDto>> QueryAsync(InventoryQueryDto dto);
-
+        Task<List<LocationQtyDto>> GetAvailableLocations(int productId, Guid WarehouseId);
 
         // =========================
         // INVENTORY HISTORY
@@ -29,9 +31,18 @@ namespace Wms.Application.Interfaces.Services.Inventory
         // =========================
         // ADJUST INVENTORY
         // =========================
-        Task AdjustAsync(
+        Task Adjust1Async(
             Guid warehouseId,
             Guid? locationId,
+            int productId,
+            decimal qtyChange,
+            InventoryActionType actionType,
+            string? refCode = null,
+            string? note = null
+        );
+        Task AdjustAsync(
+            Guid warehouseId,
+            Guid locationId,
             int productId,
             decimal qtyChange,
             InventoryActionType actionType,

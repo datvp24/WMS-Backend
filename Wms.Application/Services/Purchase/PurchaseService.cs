@@ -81,7 +81,6 @@ public class PurchaseService : IPurchaseService
 
         return MapPOToDto(po);
     }
-    //chx xong
     public async Task<PurchaseOrderDto> ApprovePOAsync(Guid poId)
     {
         // 1. Lấy PO
@@ -114,7 +113,6 @@ public class PurchaseService : IPurchaseService
                            .Where(i => i.Status == Status.Approve)
                            .GroupBy(i => i.WarehouseId);
 
-        var grList = new List<GoodsReceipt>();
 
         foreach (var group in groupedPOI)
         {
@@ -147,7 +145,6 @@ public class PurchaseService : IPurchaseService
             }
 
             _db.GoodsReceipts.Add(gr);
-            grList.Add(gr);
         }
 
         // 4. Save all
@@ -263,7 +260,7 @@ public class PurchaseService : IPurchaseService
             // Update inventory
             foreach (var item in gr.Items)
             {
-                await _inventoryService.AdjustAsync(
+                await _inventoryService.Adjust1Async(
                     warehouseId: gr.WarehouseId,
                     productId: item.ProductId,
                     qtyChange: item.Quantity,
@@ -291,12 +288,10 @@ public class PurchaseService : IPurchaseService
 
     public async Task IncomingStockCount(GoodsReceiptItem1Dto dto)
     {
-        // 1. Kiểm tra Item đầu vào
         var item = await _db.GoodsReceiptItems
             .FirstOrDefaultAsync(s => s.Id == dto.Id);
         if (item == null) throw new Exception("Dòng hàng nhập kho không tồn tại (ID null hoặc sai)");
 
-        // 2. Cập nhật số lượng và trạng thái của chính Item đó (GRI)
         item.Received_Qty += dto.Received_Qty;
 
         if (item.Received_Qty >= item.Quantity)
@@ -304,7 +299,6 @@ public class PurchaseService : IPurchaseService
         else if (item.Received_Qty > 0)
             item.Status = Domain.Enums.Purchase.GRIStatus.Partial;
 
-        // 3. Cập nhật PurchaseOrderItem (POI) liên kết
         var poi = await _db.PurchaseOrderItems.FirstOrDefaultAsync(p => p.Id == item.POIid);
         if (poi != null)
         {
@@ -316,7 +310,6 @@ public class PurchaseService : IPurchaseService
                 poi.Status = Status.Partically_Received;
             }
 
-                // 4. Cập nhật kho (Sử dụng WarehouseId từ POI hoặc GR)
                 var locationId = await _locationService.GetReceivingLocationId(poi.WarehouseId);
             await _inventoryService.AdjustAsync(
                 poi.WarehouseId,
@@ -327,20 +320,17 @@ public class PurchaseService : IPurchaseService
             );
         }
 
-        // 5. Cập nhật trạng thái GoodsReceipt (GR)
         var gr = await _db.GoodsReceipts
             .Include(p => p.Items)
             .FirstOrDefaultAsync(s => s.Id == item.GoodsReceiptId);
 
         if (gr != null)
         {
-            // Nếu tất cả item đều Complete thì GR Complete
             if (gr.Items.All(i => i.Status == Domain.Enums.Purchase.GRIStatus.Complete))
                 gr.Status = Status.Complete;
             else
-                gr.Status = Status.Partically_Received; // Hoặc giữ nguyên Pending tùy logic
+                gr.Status = Status.Partically_Received; 
 
-            // 6. Cập nhật trạng thái Purchase Order (PO)
             var po = await _db.PurchaseOrders
                 .Include(s => s.Items)
                 .FirstOrDefaultAsync(s => s.Id == gr.PurchaseOrderId);
@@ -499,7 +489,7 @@ public class PurchaseService : IPurchaseService
         {
             foreach (var item in gr.Items)
             {
-                await _inventoryService.AdjustAsync(
+                await _inventoryService.Adjust1Async(
                     warehouseId: gr.WarehouseId,
                     locationId: null,
                     productId: item.ProductId,

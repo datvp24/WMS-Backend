@@ -439,6 +439,9 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<int>("SupplierId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.Property<int>("UnitId")
                         .HasColumnType("int");
 
@@ -707,6 +710,9 @@ namespace Wms.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime>("IssuedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
@@ -715,12 +721,11 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<Guid>("SalesOrderId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("PENDING");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<Guid>("WarehouseId")
                         .HasColumnType("char(36)");
@@ -737,16 +742,52 @@ namespace Wms.Infrastructure.Migrations
                     b.ToTable("GoodsIssues", (string)null);
                 });
 
+            modelBuilder.Entity("Wms.Domain.Entity.Sales.GoodsIssueAllocate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<decimal>("AllocatedQty")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<Guid>("GoodsIssueItemId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<decimal>("PickedQty")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoodsIssueItemId");
+
+                    b.HasIndex("LocationId");
+
+                    b.ToTable("goodsIssueAllocates");
+                });
+
             modelBuilder.Entity("Wms.Domain.Entity.Sales.GoodsIssueItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<Guid>("GoodsIssueId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<int>("Issued_Qty")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("ProductId")
@@ -754,6 +795,15 @@ namespace Wms.Infrastructure.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<Guid>("SOIId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -763,6 +813,8 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
+                    b.HasIndex("SOIId");
+
                     b.ToTable("GoodsIssueItems", (string)null);
                 });
 
@@ -771,6 +823,12 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<int?>("ApproveBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -786,22 +844,8 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("LockedStock")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("DRAFT");
-
-                    b.Property<decimal>("TotalAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -822,6 +866,15 @@ namespace Wms.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Issued_Qty")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(65,30)");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -831,17 +884,22 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<Guid>("SalesOrderId")
                         .HasColumnType("char(36)");
 
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SalesOrderId");
+
+                    b.HasIndex("WarehouseId");
 
                     b.ToTable("SalesOrderItems", (string)null);
                 });
@@ -1306,6 +1364,25 @@ namespace Wms.Infrastructure.Migrations
                     b.Navigation("Warehouse");
                 });
 
+            modelBuilder.Entity("Wms.Domain.Entity.Sales.GoodsIssueAllocate", b =>
+                {
+                    b.HasOne("Wms.Domain.Entity.Sales.GoodsIssueItem", "GoodsIssueItem")
+                        .WithMany("Allocations")
+                        .HasForeignKey("GoodsIssueItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GoodsIssueItem");
+
+                    b.Navigation("Location");
+                });
+
             modelBuilder.Entity("Wms.Domain.Entity.Sales.GoodsIssueItem", b =>
                 {
                     b.HasOne("Wms.Domain.Entity.Sales.GoodsIssue", "GoodsIssue")
@@ -1317,8 +1394,7 @@ namespace Wms.Infrastructure.Migrations
                     b.HasOne("Wms.Domain.Entity.Warehouses.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Wms.Domain.Entity.MasterData.Product", "Product")
                         .WithMany()
@@ -1326,11 +1402,19 @@ namespace Wms.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Wms.Domain.Entity.Sales.SalesOrderItem", "SalesOrderItem")
+                        .WithMany()
+                        .HasForeignKey("SOIId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("GoodsIssue");
 
                     b.Navigation("Location");
 
                     b.Navigation("Product");
+
+                    b.Navigation("SalesOrderItem");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.Sales.SalesOrder", b =>
@@ -1358,9 +1442,17 @@ namespace Wms.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", "warehouse")
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Product");
 
                     b.Navigation("SalesOrder");
+
+                    b.Navigation("warehouse");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.StockTakes.StockTake", b =>
@@ -1502,6 +1594,11 @@ namespace Wms.Infrastructure.Migrations
             modelBuilder.Entity("Wms.Domain.Entity.Sales.GoodsIssue", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Sales.GoodsIssueItem", b =>
+                {
+                    b.Navigation("Allocations");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.Sales.SalesOrder", b =>

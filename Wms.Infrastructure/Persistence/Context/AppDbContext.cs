@@ -55,6 +55,7 @@ namespace Wms.Infrastructure.Persistence.Context
         public DbSet<SalesOrderItem> SalesOrderItems => Set<SalesOrderItem>();
         public DbSet<GoodsIssue> GoodsIssues => Set<GoodsIssue>();
         public DbSet<GoodsIssueItem> GoodsIssueItems => Set<GoodsIssueItem>();
+        public DbSet<GoodsIssueAllocate> goodsIssueAllocates => Set<GoodsIssueAllocate>();
 
         // TRANSFER
         public DbSet<TransferOrder> TransferOrders => Set<TransferOrder>();

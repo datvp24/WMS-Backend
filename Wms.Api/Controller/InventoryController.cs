@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Wms.Application.DTOs.Inventorys;
-using Wms.Application.Interfaces.Services.Inventory;
-using Wms.Domain.Enums.Inventory;
 using Wms.Api.Middlewares;
+using Wms.Application.DTOs.Inventorys;
+using Wms.Application.DTOS.Warehouse;
+using Wms.Application.Interfaces.Services.Inventory;
+using Wms.Application.Services.Inventorys;
+using Wms.Domain.Enums.Inventory;
 
 namespace Wms.Api.Controllers;
 
@@ -24,7 +26,51 @@ public class InventoryController : ControllerBase
         if (inv == null) return NotFound();
         return Ok(inv);
     }
+    [HttpPost("putaway")]
+    [HasPermission("inventory.putaway")]
+    public async Task<IActionResult> Putaway([FromBody] PutawayDto dto)
+    {
+        if (dto == null || dto.Qty <= 0)
+            return BadRequest("Invalid input");
 
+        try
+        {
+            await _service.PutAway(dto);
+            return Ok(new { Message = "Putaway completed successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+    [HasPermission("inventory.view")]
+    [HttpGet("available-locations")] // ⬅️ Đổi thành GET
+    public async Task<ActionResult<List<LocationQtyDto>>> GetAvailableLocations(
+    [FromQuery] int productId,      // ⬅️ FromQuery
+    [FromQuery] Guid warehouseId)   // ⬅️ FromQuery
+    {
+        try
+        {
+            // Validate
+            if (productId <= 0)
+            {
+                return BadRequest(new { message = "ProductId phải lớn hơn 0" });
+            }
+
+            if (warehouseId == Guid.Empty)
+            {
+                return BadRequest(new { message = "WarehouseId không hợp lệ" });
+            }
+
+            var result = await _service.GetAvailableLocations(productId, warehouseId);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
     // =========================
     // QUERY INVENTORY
     // =========================
@@ -65,7 +111,7 @@ public class InventoryController : ControllerBase
     [HasPermission("inventory.adjust")]
     public async Task<IActionResult> Adjust([FromBody] InventoryAdjustRequest req)
     {
-        await _service.AdjustAsync(
+        await _service.Adjust1Async(
             req.WarehouseId,
             req.LocationId,
             req.ProductId,

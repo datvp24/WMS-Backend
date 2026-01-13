@@ -13,14 +13,23 @@ namespace Wms.Domain.Entity.Sales
         public Customer Customer { get; set; } = null!;
 
         public int CreatedBy { get; set; }
-        public string Status { get; set; } = "DRAFT"; // DRAFT, PENDING, APPROVED, REJECTED
-        public bool LockedStock { get; set; } = false;
-        public decimal TotalAmount { get; set; } = 0;
+        public SOStatus Status { get; set; }
+
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        public int? ApproveBy { get; set; }
+        public DateTime? ApprovedAt { get; set; }
 
         public ICollection<SalesOrderItem> Items { get; set; } = new List<SalesOrderItem>();
         public ICollection<GoodsIssue> GoodsIssues { get; set; } = new List<GoodsIssue>();
+    }
+    public enum SOStatus
+    {
+        Pending = 0,
+        Approve = 1,
+        Partically_Issued = 2,
+        Complete = 3,
+        Rejected = 4,
     }
 }
