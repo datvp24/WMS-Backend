@@ -5408,11 +5408,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\NET\\Wms\\Wms.Api\\Wms.Api.csproj",
+      "projectUniqueName": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Api\\Wms.Api.csproj",
       "projectName": "Wms.Api",
-      "projectPath": "D:\\NET\\Wms\\Wms.Api\\Wms.Api.csproj",
+      "projectPath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Api\\Wms.Api.csproj",
       "packagesPath": "C:\\Users\\Phat Dat\\.nuget\\packages\\",
-      "outputPath": "D:\\NET\\Wms\\Wms.Api\\obj\\",
+      "outputPath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -5434,14 +5434,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\NET\\Wms\\Wms.Application\\Wms.Application.csproj": {
-              "projectPath": "D:\\NET\\Wms\\Wms.Application\\Wms.Application.csproj"
+            "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Application\\Wms.Application.csproj": {
+              "projectPath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Application\\Wms.Application.csproj"
             },
-            "D:\\NET\\Wms\\Wms.Infrastructure\\Wms.Infrastructure.csproj": {
-              "projectPath": "D:\\NET\\Wms\\Wms.Infrastructure\\Wms.Infrastructure.csproj"
+            "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Infrastructure\\Wms.Infrastructure.csproj": {
+              "projectPath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Infrastructure\\Wms.Infrastructure.csproj"
             },
-            "D:\\NET\\Wms\\Wms.Shared\\Wms.Shared.csproj": {
-              "projectPath": "D:\\NET\\Wms\\Wms.Shared\\Wms.Shared.csproj"
+            "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Shared\\Wms.Shared.csproj": {
+              "projectPath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Shared\\Wms.Shared.csproj"
             }
           }
         }

@@ -456,7 +456,7 @@ namespace Wms.Domain.Service.Sales
                     : SOStatus.Partically_Issued;
             }
             var so = await _dbContext.SalesOrders.FirstOrDefaultAsync(s => s.Id == soi.SalesOrderId);
-            var listsoi =  _dbContext.SalesOrderItems.Where(s => s.SalesOrderId == so.Id).All(i => i.Status == SOStatus.Complete);
+            var listsoi = _dbContext.SalesOrderItems.Where(s => s.SalesOrderId == so.Id).All(i => i.Status == SOStatus.Complete);
             so.Status = listsoi ? SOStatus.Complete : SOStatus.Partically_Issued;
 
             gi.IssuedAt = DateTime.UtcNow;

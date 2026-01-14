@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "zPco9DKx7vs=",
+  "dgSpecHash": "s2sczyL8IbA=",
   "success": true,
-  "projectFilePath": "D:\\NET\\Wms\\Wms.Application\\Wms.Application.csproj",
+  "projectFilePath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Application\\Wms.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Phat Dat\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Phat Dat\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

@@ -61,11 +61,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\NET\\Wms\\Wms.Shared\\Wms.Shared.csproj",
+      "projectUniqueName": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Shared\\Wms.Shared.csproj",
       "projectName": "Wms.Shared",
-      "projectPath": "D:\\NET\\Wms\\Wms.Shared\\Wms.Shared.csproj",
+      "projectPath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Shared\\Wms.Shared.csproj",
       "packagesPath": "C:\\Users\\Phat Dat\\.nuget\\packages\\",
-      "outputPath": "D:\\NET\\Wms\\Wms.Shared\\obj\\",
+      "outputPath": "D:\\Product\\WMS-SYSTEM\\Wms\\Wms.Shared\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
