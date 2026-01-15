@@ -27,9 +27,10 @@ namespace Wms.Application.Mapper.Sales
             CreateMap<SalesOrderItemUpdateDto, SalesOrderItem>();
 
             // GoodsIssue ↔ GoodsIssueDto
+            // Trong SalesMappingProfile.cs, hãy cập nhật đoạn này:
             CreateMap<GoodsIssue, GoodsIssueDto>()
+                .ForMember(dest => dest.IssuedAt, opt => opt.MapFrom(src => src.IssuedAt)) // Chỉ định rõ ràng
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
-
             // Create DTO → Entity
             CreateMap<GoodsIssueItem, GoodsIssueItemDto>(); // 🔥 DÒNG BỊ THIẾU
 

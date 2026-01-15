@@ -100,8 +100,9 @@ namespace Wms.Application.Services.Inventorys
 
         public async Task<List<InventoryDto>> QueryAsync(InventoryQueryDto dto)
         {
-            var query = _db.Inventories.AsQueryable();
+            var query = _db.Inventories.AsNoTracking().AsQueryable();
 
+            // --- Giữ nguyên các phần filter của bạn ---
             if (dto.WarehouseId.HasValue)
                 query = query.Where(x => x.WarehouseId == dto.WarehouseId);
 
@@ -113,22 +114,45 @@ namespace Wms.Application.Services.Inventorys
 
             if (dto.ProductIds != null && dto.ProductIds.Any())
                 query = query.Where(x => dto.ProductIds.Contains(x.ProductId));
+            // ------------------------------------------
 
             return await query
-                .Join(_db.Locations,
-                      inv => inv.LocationId,
-                      loc => loc.Id,
-                      (inv, loc) => new InventoryDto
-                      {
-                          Id = inv.Id,
-                          WarehouseId = inv.WarehouseId,
-                          LocationId = inv.LocationId,
-                          ProductId = inv.ProductId,
-                          OnHandQuantity = inv.OnHandQuantity,
-                          LockedQuantity = inv.LockedQuantity,
-                          InTransitQuantity = inv.InTransitQuantity,
-                          LocationType = loc.Type
-                      })
+                .Select(inv => new InventoryDto
+                {
+                    Id = inv.Id,
+                    WarehouseId = inv.WarehouseId,
+                    // Lấy tên kho từ bảng Warehouse
+                    WarehouseName = _db.Warehouses
+                        .Where(w => w.Id == inv.WarehouseId)
+                        .Select(w => w.Name)
+                        .FirstOrDefault(),
+
+                    LocationId = inv.LocationId,
+                    // Lấy mã vị trí và Type từ bảng Location
+                    LocationCode = _db.Locations
+                        .Where(l => l.Id == inv.LocationId)
+                        .Select(l => l.Code)
+                        .FirstOrDefault(),
+                    LocationType = _db.Locations
+                        .Where(l => l.Id == inv.LocationId)
+                        .Select(l => l.Type)
+                        .FirstOrDefault(),
+
+                    ProductId = inv.ProductId,
+                    // Lấy tên và mã SP từ bảng Product
+                    ProductName = _db.Products
+                        .Where(p => p.Id == inv.ProductId)
+                        .Select(p => p.Name)
+                        .FirstOrDefault(),
+                    ProductCode = _db.Products
+                        .Where(p => p.Id == inv.ProductId)
+                        .Select(p => p.Code)
+                        .FirstOrDefault(),
+
+                    OnHandQuantity = inv.OnHandQuantity,
+                    LockedQuantity = inv.LockedQuantity,
+                    InTransitQuantity = inv.InTransitQuantity
+                })
                 .ToListAsync();
         }
 

@@ -15,7 +15,7 @@ namespace Wms.Application.DTOS.Sales
         public GIStatus Status { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime UpdateAt { get; set; }
-
+        public DateTime IssuedAt { get; set; }
         public List<GoodsIssueItemDto> Items { get; set; } = new();
     }
 

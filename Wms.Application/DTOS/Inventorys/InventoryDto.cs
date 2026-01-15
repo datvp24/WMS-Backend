@@ -8,14 +8,17 @@ namespace Wms.Application.DTOs.Inventorys
     {
         public Guid Id { get; set; }
         public Guid WarehouseId { get; set; }
+        public string WarehouseName { get; set; } // Thêm mới
         public Guid LocationId { get; set; }
+        public string LocationCode { get; set; }  // Thêm mới
         public int ProductId { get; set; }
+        public string ProductName { get; set; }   // Thêm mới
+        public string ProductCode { get; set; }   // Thêm mới (SKU)
         public decimal OnHandQuantity { get; set; }
         public decimal LockedQuantity { get; set; }
         public decimal AvailableQuantity => OnHandQuantity - LockedQuantity;
-        public decimal InTransitQuantity { get; set; } // optional
+        public decimal InTransitQuantity { get; set; }
         public LocationType? LocationType { get; set; }
-
     }
     public class GetAvailableLocationsRequest
     {
