@@ -85,67 +85,81 @@ public class TransferService : ITransferService
 
     public async Task<TransferOrderDto> ApproveTransferAsync(Guid transferId)
     {
-        var transfer = await _db.Set<TransferOrder>()
-            .Include(x => x.Items)
-            .FirstOrDefaultAsync(x => x.Id == transferId);
+        var strategy = _db.Database.CreateExecutionStrategy();
 
-        if (transfer == null) throw new Exception("Không tìm thấy phiếu chuyển kho.");
-        if (transfer.Status != TransferStatus.Draft) throw new Exception("Chỉ có thể duyệt phiếu ở trạng thái Nháp.");
-
-        using var transaction = await _db.Database.BeginTransactionAsync();
-        try
+        return await strategy.ExecuteAsync(async () =>
         {
-            foreach (var item in transfer.Items)
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try
             {
-                var stock = await _db.Set<Inventory>()
-                    .FirstOrDefaultAsync(x => x.LocationId == item.FromLocationId && x.ProductId == item.ProductId);
+                var transfer = await _db.Set<TransferOrder>()
+                    .Include(x => x.Items)
+                    .FirstOrDefaultAsync(x => x.Id == transferId);
 
-                if (stock == null || stock.OnHandQuantity < item.Quantity)
-                    throw new Exception($"Sản phẩm ID {item.ProductId} không đủ tồn kho tại vị trí nguồn.");
+                if (transfer == null)
+                    throw new Exception("Không tìm thấy phiếu chuyển kho.");
 
-                // 1️⃣ Trừ kho nguồn
-                stock.OnHandQuantity -= item.Quantity;
+                if (transfer.Status != TransferStatus.Draft)
+                    throw new Exception("Chỉ có thể duyệt phiếu ở trạng thái Nháp.");
 
-                // 2️⃣ Mở khóa
-                stock.LockedQuantity -= item.Quantity;
-
-                await _inventoryService.AdjustAsync(
-                    warehouseId: transfer.ToWarehouseId,
-                    locationId: item.ToLocationId,
-                    productId: item.ProductId,
-                    qtyChange: item.Quantity, 
-                    actionType: InventoryActionType.TransferIn,
-                    refCode: transfer.Code
-                );
-
-                _db.InventoryHistories.Add(new InventoryHistory
+                foreach (var item in transfer.Items)
                 {
-                    Id = Guid.NewGuid(),
-                    WarehouseId = transfer.FromWarehouseId,
-                    LocationId = item.FromLocationId,
-                    ProductId = item.ProductId,
-                    QuantityChange = -item.Quantity,
-                    ActionType = InventoryActionType.TransferOut,
-                    ReferenceCode = transfer.Code,
-                    CreatedAt = DateTime.UtcNow
-                });
+                    var stock = await _db.Set<Inventory>()
+                        .FirstOrDefaultAsync(x =>
+                            x.LocationId == item.FromLocationId &&
+                            x.ProductId == item.ProductId);
+
+                    if (stock == null || stock.OnHandQuantity < item.Quantity)
+                        throw new Exception(
+                            $"Sản phẩm ID {item.ProductId} không đủ tồn kho tại vị trí nguồn."
+                        );
+
+                    // 1️⃣ Trừ kho nguồn
+                    stock.OnHandQuantity -= item.Quantity;
+
+                    // 2️⃣ Mở khóa
+                    stock.LockedQuantity -= item.Quantity;
+
+                    // 3️⃣ Cộng kho đích
+                    await _inventoryService.AdjustAsync(
+                        warehouseId: transfer.ToWarehouseId,
+                        locationId: item.ToLocationId,
+                        productId: item.ProductId,
+                        qtyChange: item.Quantity,
+                        actionType: InventoryActionType.TransferIn,
+                        refCode: transfer.Code
+                    );
+
+                    // 4️⃣ History kho nguồn
+                    _db.InventoryHistories.Add(new InventoryHistory
+                    {
+                        Id = Guid.NewGuid(),
+                        WarehouseId = transfer.FromWarehouseId,
+                        LocationId = item.FromLocationId,
+                        ProductId = item.ProductId,
+                        QuantityChange = -item.Quantity,
+                        ActionType = InventoryActionType.TransferOut,
+                        ReferenceCode = transfer.Code,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                transfer.Status = TransferStatus.Approved;
+                transfer.ApprovedAt = DateTime.UtcNow;
+                transfer.ApprovedBy = _jwt.GetUserId();
+                transfer.UpdatedAt = DateTime.UtcNow;
+
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return await GetTransferByIdAsync(transfer.Id);
             }
-
-            transfer.Status = TransferStatus.Approved;
-            transfer.ApprovedAt = DateTime.UtcNow;
-            transfer.ApprovedBy = _jwt.GetUserId();
-            transfer.UpdatedAt = DateTime.UtcNow;
-
-            await _db.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return await GetTransferByIdAsync(transfer.Id);
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
     }
 
     public async Task<TransferOrderDto> CancelTransferAsync(Guid transferId)
