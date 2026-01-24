@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Wms.Domain.Entity.MasterData;
 
 namespace Wms.Domain.Entity.Inventorys;
 
@@ -10,8 +11,9 @@ public class Inventory
     public Guid Id { get; set; }
 
     public Guid WarehouseId { get; set; }
-    public Guid LocationId { get; set; }
+    public Guid? LocationId { get; set; }
     public int ProductId { get; set; }
+    public Product Product {get;set;}
 
     // ===== Quantities =====
     public decimal OnHandQuantity { get; set; }       // tồn thực tế

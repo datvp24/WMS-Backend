@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Wms.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class init1010 : Migration
+    public partial class init1011 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -203,6 +203,7 @@ namespace Wms.Infrastructure.Migrations
                     Address = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    WarehouseType = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
@@ -642,7 +643,7 @@ namespace Wms.Infrastructure.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Inventories_Warehouses_WarehouseId",
                         column: x => x.WarehouseId,
@@ -805,7 +806,6 @@ namespace Wms.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     GoodsIssueId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     SOIId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    SalesOrderItemId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     LocationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
@@ -836,8 +836,8 @@ namespace Wms.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GoodsIssueItems_SalesOrderItems_SalesOrderItemId",
-                        column: x => x.SalesOrderItemId,
+                        name: "FK_GoodsIssueItems_SalesOrderItems_SOIId",
+                        column: x => x.SOIId,
                         principalTable: "SalesOrderItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -862,6 +862,12 @@ namespace Wms.Infrastructure.Migrations
                         name: "FK_goodsIssueAllocates_GoodsIssueItems_GoodsIssueItemId",
                         column: x => x.GoodsIssueItemId,
                         principalTable: "GoodsIssueItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_goodsIssueAllocates_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -909,6 +915,11 @@ namespace Wms.Infrastructure.Migrations
                 column: "GoodsIssueItemId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_goodsIssueAllocates_LocationId",
+                table: "goodsIssueAllocates",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GoodsIssueItems_GoodsIssueId",
                 table: "GoodsIssueItems",
                 column: "GoodsIssueId");
@@ -924,9 +935,9 @@ namespace Wms.Infrastructure.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GoodsIssueItems_SalesOrderItemId",
+                name: "IX_GoodsIssueItems_SOIId",
                 table: "GoodsIssueItems",
-                column: "SalesOrderItemId");
+                column: "SOIId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GoodsIssues_Code",
@@ -970,9 +981,9 @@ namespace Wms.Infrastructure.Migrations
                 column: "WarehouseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inventories_WarehouseId_LocationId_ProductId",
+                name: "IX_Inventories_WarehouseId_LocationId",
                 table: "Inventories",
-                columns: new[] { "WarehouseId", "LocationId", "ProductId" },
+                columns: new[] { "WarehouseId", "LocationId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

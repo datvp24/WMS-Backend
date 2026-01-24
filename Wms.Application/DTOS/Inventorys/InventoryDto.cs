@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text.Json.Serialization;
+using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Enums.Inventory;
 using Wms.Domain.Enums.location;
 
@@ -9,7 +11,7 @@ namespace Wms.Application.DTOs.Inventorys
         public Guid Id { get; set; }
         public Guid WarehouseId { get; set; }
         public string WarehouseName { get; set; } // Thêm mới
-        public Guid LocationId { get; set; }
+        public Guid? LocationId { get; set; }
         public string LocationCode { get; set; }  // Thêm mới
         public int ProductId { get; set; }
         public string ProductName { get; set; }   // Thêm mới
@@ -19,6 +21,12 @@ namespace Wms.Application.DTOs.Inventorys
         public decimal AvailableQuantity => OnHandQuantity - LockedQuantity;
         public decimal InTransitQuantity { get; set; }
         public LocationType? LocationType { get; set; }
+    }
+
+    public class ProductType1Dto
+    {
+        [JsonPropertyName("productType")]
+        public ProductType ProductType { get; set; }
     }
     public class GetAvailableLocationsRequest
     {
@@ -39,7 +47,7 @@ namespace Wms.Application.DTOs.Inventorys
     {
         public Guid Id { get; set; }
         public Guid WarehouseId { get; set; }
-        public Guid LocationId { get; set; }
+        public Guid? LocationId { get; set; }
         public int ProductId { get; set; }
         public decimal QuantityChange { get; set; }
         public InventoryActionType ActionType { get; set; }

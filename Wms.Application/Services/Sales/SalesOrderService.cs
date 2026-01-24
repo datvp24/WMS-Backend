@@ -1,15 +1,17 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Wms.Application.DTOS.Sales;
+using Wms.Application.DTOS.Sales;
+using Wms.Application.Exceptions;
 using Wms.Application.Interfaces.Service.Sales;
 using Wms.Application.Interfaces.Services;
 using Wms.Application.Interfaces.Services.Inventory;
 using Wms.Application.Interfaces.Services.Warehouse;
 using Wms.Application.Services.Inventorys;
+using Wms.Domain.Entity.Inventorys;
 using Wms.Domain.Entity.Sales;
 using Wms.Domain.Entity.Warehouses;
 using Wms.Domain.Enums.Inventory;
-using Wms.Application.DTOS.Sales;
 using Wms.Infrastructure.Persistence.Context;
 
 namespace Wms.Domain.Service.Sales
@@ -32,6 +34,9 @@ namespace Wms.Domain.Service.Sales
         }
 
         #region Create / Update / Get
+
+
+       
 
         public async Task<SalesOrderDto> CreateSOAsync(SalesOrderDto dto)
         {
@@ -330,8 +335,6 @@ namespace Wms.Domain.Service.Sales
             await _dbContext.SaveChangesAsync();
             return _mapper.Map<SalesOrderDto>(entity);
         }
-
-
         public async Task Picking(GoodsIssueItemDto dto)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
@@ -344,8 +347,22 @@ namespace Wms.Domain.Service.Sales
                         .Include(x => x.Allocations)
                         .FirstOrDefaultAsync(s => s.Id == dto.Id);
 
-                    var gi = await _dbContext.GoodsIssues.FirstOrDefaultAsync(s => s.Id == dto.GoodsIssueId);
-                    var issuedLocation = await _warehouse.GetIssuedLocationId(gi.WarehouseId);
+                    var gi = await _dbContext.GoodsIssues.Include(s=> s.Warehouse).FirstOrDefaultAsync(s => s.Id == dto.GoodsIssueId);
+                    var issued1Location = new Location();
+                    try
+                    {
+                        var issuedLocation = await _warehouse.GetIssuedLocationId(gi.WarehouseId);
+                        issued1Location = issuedLocation;
+                    }catch (Exception e)
+                    {
+                        throw new BusinessException(
+                            "WAREHOUSE_SHIPPING_LOCATION_NOT_CONFIGURED",
+                            $"Kho '{gi.Warehouse.Name}' chưa cấu hình vị trí xuất hàng (Shipping Location). " +
+                            "Vui lòng kiểm tra và thiết lập Location loại Shipping/Output."
+                        );
+
+                    }
+
 
                     // Chuẩn bị danh sách ID để load một lần
                     var allocateIds = dto.Items.Select(x => x.Id).ToList();
@@ -364,9 +381,8 @@ namespace Wms.Domain.Service.Sales
                         gia.Status = GIAStatus.Picked;
 
                         // 2. TRỪ kho tại Kệ và CỘNG vào Cổng xuất
-                        await _inventoryService.AdjustAsync(gi.WarehouseId, gia.LocationId, dto.ProductId, actualPicked, InventoryActionType.AdjustDecrease);
-                        await _inventoryService.AdjustAsync(gi.WarehouseId, issuedLocation.Id, dto.ProductId, actualPicked, InventoryActionType.AdjustIncrease);
-
+                            await _inventoryService.AdjustPickingAsync(gi.WarehouseId, gia.LocationId, dto.ProductId, actualPicked, InventoryActionType.AdjustDecrease);
+                            await _inventoryService.AdjustAsync(gi.WarehouseId, issued1Location.Id, dto.ProductId, actualPicked, InventoryActionType.AdjustIncrease);
                         // 3. Xử lý thiếu hàng (Re-allocate)
                         if (actualPicked < gia.AllocatedQty)
                         {
@@ -375,11 +391,10 @@ namespace Wms.Domain.Service.Sales
                             // Tìm các vị trí còn hàng khác (Chỉ lấy các vị trí chưa được dùng trong đợt pick này để tránh duplicate)
                             var availableLocs = await _inventoryService.GetAvailableLocations(dto.ProductId, gi.WarehouseId);
 
-                            foreach (var loc in availableLocs.Where(l => l.Id != gia.LocationId))
+                            foreach (var loc in availableLocs.Where(l => l.Id != gia.LocationId && l.Type == Enums.location.LocationType.Storage))
                             {
                                 if (remainingQty <= 0) break;
                                 decimal allocQty = Math.Min(remainingQty, loc.AvailableQty);
-
                                 _dbContext.goodsIssueAllocates.Add(new GoodsIssueAllocate
                                 {
                                     Id = Guid.NewGuid(),
@@ -398,7 +413,7 @@ namespace Wms.Domain.Service.Sales
                                 {
                                     Id = Guid.NewGuid(),
                                     GoodsIssueItemId = gii.Id,
-                                    LocationId = Guid.Empty, // Đánh dấu chờ xử lý thủ công
+                                    LocationId = null, // Đánh dấu chờ xử lý thủ công
                                     AllocatedQty = remainingQty,
                                     Status = GIAStatus.Planned
                                 });
@@ -458,6 +473,7 @@ namespace Wms.Domain.Service.Sales
                         .FirstOrDefaultAsync(x => x.Id == gii.GoodsIssueId);
 
                     var issueLocation = await _warehouse.GetIssuedLocationId(gi.WarehouseId);
+
                     if (issueLocation == null) throw new Exception("Không tìm thấy vị trí xuất hàng (Issue Location) cho kho này.");
 
                     await _inventoryService.AdjustAsync(

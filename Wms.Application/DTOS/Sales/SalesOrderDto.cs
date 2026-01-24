@@ -190,7 +190,7 @@ public class GoodsIssueAllocate1Dto
 {
     public Guid Id { get; set; }
 
-    public Guid LocationId { get; set; }
+    public Guid? LocationId { get; set; }
 
     public string LocationCode { get; set; } = null!;
     public decimal AllocatedQty { get; set; }

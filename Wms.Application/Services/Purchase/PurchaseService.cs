@@ -125,6 +125,7 @@ public class PurchaseService : IPurchaseService
                 WarehouseId = warehouseId,
                 Code = GenerateGRCode(), // custom function
                 Status = Status.Pending,
+                ReceiptType = ReceiptType.Purchase,
                 CreatedAt = DateTime.UtcNow,
                 Items = new List<GoodsReceiptItem>()
             };
@@ -212,26 +213,6 @@ public class PurchaseService : IPurchaseService
         if (dto.WarehouseId == Guid.Empty)
             throw new BusinessRuleException("WarehouseId is required");
 
-        var po = await _db.Set<PurchaseOrder>()
-                          .Include(x => x.Items)
-                          .FirstOrDefaultAsync(x => x.Id == dto.PurchaseOrderId);
-
-        if (po == null) throw new NotFoundException("PO not found");
-        if (po.Status != "Approved") throw new BusinessRuleException("Cannot create GR for PO that is not approved");
-
-        // Check quantity
-        foreach (var item in dto.Items)
-        {
-            var poItem = po.Items.FirstOrDefault(x => x.ProductId == item.ProductId);
-            if (poItem == null) throw new BusinessRuleException($"Product {item.ProductId} not in PO");
-
-            var totalReceived = await _db.Set<GoodsReceiptItem>()
-                                         .Where(x => x.ProductId == item.ProductId && x.GoodsReceipt.PurchaseOrderId == po.Id)
-                                         .SumAsync(x => x.Quantity);
-
-            if (totalReceived + item.Quantity > poItem.Quantity)
-                throw new BusinessRuleException($"Received quantity exceeds PO for product {item.ProductId}");
-        }
 
         using var transaction = await _db.Database.BeginTransactionAsync();
         try
@@ -244,11 +225,14 @@ public class PurchaseService : IPurchaseService
                 WarehouseId = dto.WarehouseId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Items = dto.Items.Select(i => new GoodsReceiptItem
+                Productions = dto.ProductionReceiptItems.Select(i => new ProductionReceiptItem
                 {
                     Id = Guid.NewGuid(),
+                    GoodsReceiptId = i.GoodsReceiptId,
                     ProductId = i.ProductId,
                     Quantity = i.Quantity,
+                    Receipt_Qty = i.Receipt_Qty,
+                    Status = GRIStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 }).ToList()
@@ -258,17 +242,6 @@ public class PurchaseService : IPurchaseService
             await _db.SaveChangesAsync();
 
             // Update inventory
-            foreach (var item in gr.Items)
-            {
-                await _inventoryService.Adjust1Async(
-                    warehouseId: gr.WarehouseId,
-                    productId: item.ProductId,
-                    qtyChange: item.Quantity,
-                    locationId: null,
-                    actionType: InventoryActionType.Receive,
-                    refCode: gr.Code
-                );
-            }
 
             await transaction.CommitAsync();
             return MapGRToDto(gr);
@@ -280,6 +253,9 @@ public class PurchaseService : IPurchaseService
         }
     }
 
+    // Hàm Approve cho productionGR
+    
+
     // Không paging
     public async Task<List<GoodsReceiptDto>> GetGRsAsync(Guid? poId = null)
     {
@@ -288,63 +264,90 @@ public class PurchaseService : IPurchaseService
 
     public async Task IncomingStockCount(GoodsReceiptItem1Dto dto)
     {
-        var item = await _db.GoodsReceiptItems
-            .FirstOrDefaultAsync(s => s.Id == dto.Id);
-        if (item == null) throw new Exception("Dòng hàng nhập kho không tồn tại (ID null hoặc sai)");
+        var strategy = _db.Database.CreateExecutionStrategy();
 
-        item.Received_Qty += dto.Received_Qty;
-
-        if (item.Received_Qty >= item.Quantity)
-            item.Status = Domain.Enums.Purchase.GRIStatus.Complete;
-        else if (item.Received_Qty > 0)
-            item.Status = Domain.Enums.Purchase.GRIStatus.Partial;
-
-        var poi = await _db.PurchaseOrderItems.FirstOrDefaultAsync(p => p.Id == item.POIid);
-        if (poi != null)
+        await strategy.ExecuteAsync(async () =>
         {
-            poi.Received_qty += dto.Received_Qty;
-            if (poi.Received_qty >= item.Quantity)
-                poi.Status = Status.Complete;
-            else
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+
+            try
             {
-                poi.Status = Status.Partically_Received;
+                var item = await _db.GoodsReceiptItems
+                    .FirstOrDefaultAsync(s => s.Id == dto.Id);
+                var product = await _db.Products.FirstOrDefaultAsync(s=> s.Id == dto.ProductId);
+                if (product == null)
+                    throw new Exception("Chỉ nhập kho những sản phẩm thuộc loại nguyên vật liệu");
+
+                if (item == null)
+                    throw new Exception("Dòng hàng nhập kho không tồn tại (ID null hoặc sai)");
+
+                // 1️⃣ Update GR Item
+                item.Received_Qty += dto.Received_Qty;
+
+                if (item.Received_Qty >= item.Quantity)
+                    item.Status = Domain.Enums.Purchase.GRIStatus.Complete;
+                else if (item.Received_Qty > 0)
+                    item.Status = Domain.Enums.Purchase.GRIStatus.Partial;
+
+                // 2️⃣ Update PO Item + Inventory
+                var poi = await _db.PurchaseOrderItems
+                    .FirstOrDefaultAsync(p => p.Id == item.POIid);
+
+                if (poi != null)
+                {
+                    poi.Received_qty += dto.Received_Qty;
+
+                    if (poi.Received_qty >= item.Quantity)
+                        poi.Status = Status.Complete;
+                    else
+                        poi.Status = Status.Partically_Received;
+
+                    var locationId = await _locationService
+                        .GetReceivingLocationId(poi.WarehouseId);
+
+                    await _inventoryService.AdjustAsync(
+                        poi.WarehouseId,
+                        locationId,
+                        item.ProductId,
+                        dto.Received_Qty,
+                        InventoryActionType.Receive
+                    );
+                }
+
+                // 3️⃣ Update GR status [có thể tách thành hàm riêng để dễ tái sử dụng]
+                var gr = await _db.GoodsReceipts
+                    .Include(p => p.Items)
+                    .FirstOrDefaultAsync(s => s.Id == item.GoodsReceiptId);
+
+                if (gr != null)
+                {
+                    gr.Status = gr.Items.All(i => i.Status == Domain.Enums.Purchase.GRIStatus.Complete)
+                        ? Status.Complete
+                        : Status.Partically_Received;
+
+                    // 4️⃣ Update PO status
+                    var po = await _db.PurchaseOrders
+                        .Include(s => s.Items)
+                        .FirstOrDefaultAsync(s => s.Id == gr.PurchaseOrderId);
+
+                    if (po != null)
+                    {
+                        if (po.Items.All(x => x.Received_qty >= x.Quantity))
+                            po.Status = Status.Complete.ToString();
+                        else if (po.Items.Any(x => x.Received_qty > 0))
+                            po.Status = Status.Partically_Received.ToString();
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
-
-                var locationId = await _locationService.GetReceivingLocationId(poi.WarehouseId);
-            await _inventoryService.AdjustAsync(
-                poi.WarehouseId,
-                locationId,
-                item.ProductId,
-                dto.Received_Qty,
-                InventoryActionType.Receive
-            );
-        }
-
-        var gr = await _db.GoodsReceipts
-            .Include(p => p.Items)
-            .FirstOrDefaultAsync(s => s.Id == item.GoodsReceiptId);
-
-        if (gr != null)
-        {
-            if (gr.Items.All(i => i.Status == Domain.Enums.Purchase.GRIStatus.Complete))
-                gr.Status = Status.Complete;
-            else
-                gr.Status = Status.Partically_Received; 
-
-            var po = await _db.PurchaseOrders
-                .Include(s => s.Items)
-                .FirstOrDefaultAsync(s => s.Id == gr.PurchaseOrderId);
-
-            if (po != null)
+            catch
             {
-                if (po.Items.All(x => x.Received_qty >= x.Quantity))
-                    po.Status = Status.Complete.ToString();
-                else if (po.Items.Any(x => x.Received_qty > 0))
-                    po.Status = Status.Partically_Received.ToString();
+                await transaction.RollbackAsync();
+                throw;
             }
-        }
-
-        await _db.SaveChangesAsync();
+        });
     }
 
     // Có paging
@@ -360,6 +363,18 @@ public class PurchaseService : IPurchaseService
                              .ToListAsync();
 
         return grs.Select(MapGRToDto).ToList();
+    }
+    public async Task CreateGIByProduction(GoodsReceiptDto dto)
+    {
+        var GR = new GoodsReceipt()
+        {
+            Id = new Guid(),
+            Code = dto.Code,
+            WarehouseId = dto.WarehouseId,
+            Status = Status.Pending,
+            ReceiptType = ReceiptType.Production,
+
+        };
     }
     private async Task<PurchaseOrderDto> MapPOWithReceivedQtyAsync(PurchaseOrder po)
     {

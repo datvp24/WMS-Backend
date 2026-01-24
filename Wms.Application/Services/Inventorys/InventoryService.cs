@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Wms.Application.DTOs.Inventorys;
+using Wms.Application.DTOS.Warehouse;
 using Wms.Application.Interfaces.Services.Inventory;
+using Wms.Application.Interfaces.Services.Warehouse;
 using Wms.Domain.Entity.Inventorys;
+using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Enums.Inventory;
 using Wms.Infrastructure.Persistence.Context;
-using Wms.Application.DTOS.Warehouse;
-using Wms.Application.Interfaces.Services.Warehouse;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Wms.Application.Services.Inventorys
 {
@@ -97,6 +99,44 @@ namespace Wms.Application.Services.Inventorys
                       })
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
+        public async Task<List<InventoryDto>> GetInventoryByProductType(ProductType1Dto dto)
+        {
+            var result = await _db.Inventories
+                .Where(i => i.Product.Type == dto.ProductType)
+                .GroupBy(i => new
+                {
+                    i.ProductId,
+                    i.WarehouseId
+                })
+                .Select(g => new InventoryDto
+                {
+                    ProductId = g.Key.ProductId,
+                    WarehouseId = g.Key.WarehouseId,
+
+                    WarehouseName = _db.Warehouses
+                        .Where(w => w.Id == g.Key.WarehouseId)
+                        .Select(w => w.Name)
+                        .FirstOrDefault(),
+
+                    ProductName = _db.Products
+                        .Where(p => p.Id == g.Key.ProductId)
+                        .Select(p => p.Name)
+                        .FirstOrDefault(),
+
+                    ProductCode = _db.Products
+                        .Where(p => p.Id == g.Key.ProductId)
+                        .Select(p => p.Code)
+                        .FirstOrDefault(),
+
+                    OnHandQuantity = g.Sum(x => x.OnHandQuantity),
+                    LockedQuantity = g.Sum(x => x.LockedQuantity),
+                    InTransitQuantity = g.Sum(x => x.InTransitQuantity),
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return result;
+        }
 
         public async Task<List<InventoryDto>> QueryAsync(InventoryQueryDto dto)
         {
@@ -183,6 +223,90 @@ namespace Wms.Application.Services.Inventorys
         public async Task AdjustAsync(
             Guid warehouseId,
             Guid locationId,
+            int productId,
+            decimal qty,
+            InventoryActionType actionType,
+            string? refCode,
+            string? note = null)
+        {
+            // 1. Validate đầu vào
+            if (qty <= 0)
+                throw new Exception("Quantity must be greater than zero");
+
+            // 2. Xác định dấu (+ / -) dựa trên ActionType
+            decimal signedQty = actionType switch
+            {
+                // === TĂNG TỒN ===
+                InventoryActionType.Receive => qty,           // nhập kho
+                InventoryActionType.TransferIn => qty,        // chuyển đến location
+                InventoryActionType.AdjustIncrease => qty,    // điều chỉnh tăng
+                InventoryActionType.StockTakeAdjustment => qty,
+
+                // === GIẢM TỒN ===
+                InventoryActionType.Issue => -qty,             // xuất kho
+                InventoryActionType.TransferOut => -qty,       // chuyển đi location
+                InventoryActionType.AdjustDecrease => -qty,    // điều chỉnh giảm
+                InventoryActionType.StockCount => -qty,
+
+                // === KHÔNG HỖ TRỢ ===
+                _ => throw new Exception($"Unsupported inventory action: {actionType}")
+            };
+
+            // 3. Lấy inventory theo warehouse + location + product
+            var inv = await _db.Inventories.FirstOrDefaultAsync(x =>
+                x.WarehouseId == warehouseId &&
+                x.LocationId == locationId &&
+                x.ProductId == productId
+            );
+
+            // 4. Nếu chưa có inventory thì tạo mới
+            if (inv == null)
+            {
+                inv = new Inventory
+                {
+                    Id = Guid.NewGuid(),
+                    WarehouseId = warehouseId,
+                    LocationId = locationId,
+                    ProductId = productId,
+                    OnHandQuantity = 0,
+                    LockedQuantity = 0,
+                    InTransitQuantity = 0,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _db.Inventories.Add(inv);
+            }
+
+            // 5. Validate không cho âm tồn
+            // Chỉ validate âm tồn khi chúng ta đang thực hiện hành động GIẢM (signedQty < 0)
+            if (signedQty < 0 && (inv.OnHandQuantity + signedQty < 0))
+            {
+                throw new Exception($"Không đủ hàng để trừ. Hiện có: {inv.OnHandQuantity}, yêu cầu trừ: {Math.Abs(signedQty)} và {inv.Id}, và {inv.LocationId}, và {inv.ProductId}, và {inv.WarehouseId}");
+            }
+
+            // 6. Update tồn kho
+            inv.OnHandQuantity += signedQty;
+            inv.UpdatedAt = DateTime.UtcNow;
+
+            // 7. Ghi lịch sử inventory
+            _db.InventoryHistories.Add(new InventoryHistory
+            {
+                Id = Guid.NewGuid(),
+                WarehouseId = warehouseId,
+                LocationId = locationId,
+                ProductId = productId,
+                QuantityChange = signedQty,
+                ActionType = actionType,
+                ReferenceCode = refCode,
+                Note = note,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            // 8. Commit
+            await _db.SaveChangesAsync();
+        }
+        public async Task AdjustPickingAsync(
+            Guid warehouseId,
+            Guid? locationId,
             int productId,
             decimal qty,
             InventoryActionType actionType,

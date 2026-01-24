@@ -1,5 +1,6 @@
 ﻿using Wms.Application.DTOs.Inventorys;
 using Wms.Application.DTOS.Warehouse;
+using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Enums.Inventory;
 
 namespace Wms.Application.Interfaces.Services.Inventory
@@ -14,7 +15,7 @@ namespace Wms.Application.Interfaces.Services.Inventory
 
         public Task<List<InventoryDto>> GetByWarehouseAsync(Guid warehouseId)
             => QueryAsync(new InventoryQueryDto { WarehouseId = warehouseId });
-
+        Task<List<InventoryDto>> GetInventoryByProductType(ProductType1Dto dto);
         public Task<List<InventoryDto>> GetByLocationAsync(Guid locationId)
             => QueryAsync(new InventoryQueryDto { LocationId = locationId });
 
@@ -43,6 +44,16 @@ namespace Wms.Application.Interfaces.Services.Inventory
         Task AdjustAsync(
             Guid warehouseId,
             Guid locationId,
+            int productId,
+            decimal qtyChange,
+            InventoryActionType actionType,
+            string? refCode = null,
+            string? note = null
+        );
+
+        Task AdjustPickingAsync(
+            Guid warehouseId,
+            Guid? locationId,
             int productId,
             decimal qtyChange,
             InventoryActionType actionType,

@@ -79,15 +79,8 @@ namespace Wms.Api.Controllers
         [HasPermission("salesorder.Issue")]
         public async Task<IActionResult> Issue([FromBody] IssueGoodsDto dto)
         {
-            try
-            {
                 await _salesOrderService.OutgoingStockCount(dto);
                 return Ok(new { Message = "Issued successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { ex.Message });
-            }
         }
         [HttpPost("picking")]
         [HasPermission("salesorder.picking")]

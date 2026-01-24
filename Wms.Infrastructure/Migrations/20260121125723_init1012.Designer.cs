@@ -12,8 +12,8 @@ using Wms.Infrastructure.Persistence.Context;
 namespace Wms.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260110082035_init1010")]
-    partial class init1010
+    [Migration("20260121125723_init1012")]
+    partial class init1012
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,7 +39,7 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Note")
@@ -252,7 +252,7 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("decimal(18,4)")
                         .HasDefaultValue(0m);
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<decimal>("LockedQuantity")
@@ -278,7 +278,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.HasIndex("WarehouseId", "LocationId", "ProductId")
+                    b.HasIndex("WarehouseId", "LocationId")
                         .IsUnique();
 
                     b.ToTable("Inventories", (string)null);
@@ -757,7 +757,7 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<Guid>("GoodsIssueItemId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<decimal>("PickedQty")
@@ -769,6 +769,8 @@ namespace Wms.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GoodsIssueItemId");
+
+                    b.HasIndex("LocationId");
 
                     b.ToTable("goodsIssueAllocates");
                 });
@@ -800,9 +802,6 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<Guid>("SOIId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("SalesOrderItemId")
-                        .HasColumnType("char(36)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -817,7 +816,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("SalesOrderItemId");
+                    b.HasIndex("SOIId");
 
                     b.ToTable("GoodsIssueItems", (string)null);
                 });
@@ -958,7 +957,8 @@ namespace Wms.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
+                        .IsRequired()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Note")
@@ -1155,6 +1155,9 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("WarehouseType")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
@@ -1167,9 +1170,7 @@ namespace Wms.Infrastructure.Migrations
                 {
                     b.HasOne("Wms.Domain.Entity.Warehouses.Location", null)
                         .WithMany()
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("LocationId");
 
                     b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
                         .WithMany()
@@ -1246,13 +1247,12 @@ namespace Wms.Infrastructure.Migrations
                     b.HasOne("Wms.Domain.Entity.Warehouses.Location", null)
                         .WithMany()
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
+                    b.HasOne("Wms.Domain.Entity.MasterData.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", null)
@@ -1260,6 +1260,8 @@ namespace Wms.Infrastructure.Migrations
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.MasterData.Product", b =>
@@ -1376,7 +1378,13 @@ namespace Wms.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId");
+
                     b.Navigation("GoodsIssueItem");
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.Sales.GoodsIssueItem", b =>
@@ -1400,7 +1408,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasOne("Wms.Domain.Entity.Sales.SalesOrderItem", "SalesOrderItem")
                         .WithMany()
-                        .HasForeignKey("SalesOrderItemId")
+                        .HasForeignKey("SOIId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

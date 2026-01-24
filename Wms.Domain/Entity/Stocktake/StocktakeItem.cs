@@ -12,7 +12,7 @@ public class StockTakeItem
     public StockTake StockTake { get; set; }
 
     [Required]
-    public Guid LocationId { get; set; }
+    public Guid? LocationId { get; set; }
     public Location Location { get; set; }
 
     [Required]

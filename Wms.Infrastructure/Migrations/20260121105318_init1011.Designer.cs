@@ -12,8 +12,8 @@ using Wms.Infrastructure.Persistence.Context;
 namespace Wms.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260111165112_init1012")]
-    partial class init1012
+    [Migration("20260121105318_init1011")]
+    partial class init1011
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -278,7 +278,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.HasIndex("WarehouseId", "LocationId", "ProductId")
+                    b.HasIndex("WarehouseId", "LocationId")
                         .IsUnique();
 
                     b.ToTable("Inventories", (string)null);
@@ -1154,6 +1154,9 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("WarehouseType")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
@@ -1248,10 +1251,10 @@ namespace Wms.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
+                    b.HasOne("Wms.Domain.Entity.MasterData.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", null)
@@ -1259,6 +1262,8 @@ namespace Wms.Infrastructure.Migrations
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.MasterData.Product", b =>

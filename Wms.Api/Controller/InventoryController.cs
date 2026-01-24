@@ -18,6 +18,16 @@ public class InventoryController : ControllerBase
     // =========================
     // GET INVENTORY BY ID
     // =========================
+    [HttpPost("by-product-type")]
+    [HasPermission("inventory.view")]
+    public async Task<IActionResult> GetByProductType([FromBody] ProductType1Dto dto)
+    {
+        if (dto == null)
+            return BadRequest();
+
+        var result = await _service.GetInventoryByProductType(dto);
+        return Ok(result);
+    }
     [HttpGet("{id:guid}")]
     [HasPermission("inventory.view")]
     public async Task<IActionResult> Get(Guid id)

@@ -37,7 +37,7 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
                .IsRequired(false);
 
         // Unique constraint: mỗi Product + Warehouse + Location chỉ có 1 record
-        builder.HasIndex(x => new { x.WarehouseId, x.LocationId, x.ProductId })
+        builder.HasIndex(x => new { x.WarehouseId, x.LocationId })
                .IsUnique();
 
         // Index để query nhanh
@@ -56,9 +56,5 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
                .HasForeignKey(x => x.LocationId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Product>()
-               .WithMany()
-               .HasForeignKey(x => x.ProductId)
-               .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Wms.Api.Extensions;
+using Wms.Application.Exceptions;
+using Wms.Application.Mapper.Sales;
 using Wms.Infrastructure.Persistence.Context;
 using Wms.Infrastructure.Seed;
-using Wms.Application.Mapper.Sales;
-using AutoMapper;
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CONFIGURATION ---
@@ -67,6 +69,30 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+//app.UseExceptionHandler(builder =>
+//{
+//    builder.Run(async context =>
+//    {
+//        var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+//        if (error is BusinessException be)
+//        {
+//            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+//            await context.Response.WriteAsJsonAsync(new
+//            {
+//                code = be.Code,
+//                message = be.Message
+//            });
+//            return;
+//        }
+
+//        context.Response.StatusCode = 500;
+//        await context.Response.WriteAsJsonAsync(new
+//        {
+//            message = "Lỗi hệ thống, vui lòng thử lại"
+//        });
+//    });
+//});
 
 // 3. Run Auth Seeders (Role, Permission, Admin)
 using (var scope = app.Services.CreateScope())
@@ -81,7 +107,7 @@ using (var scope = app.Services.CreateScope())
         {
             await db.Database.MigrateAsync();
             await AuthSeeder.SeedAsync(db);
-            await OtherSeeder.SeedAsync(db);
+            await TechnicalPlasticWarehouseSeeder.SeedAsync(db);
             break; // Thành công thì thoát vòng lặp
         }
         catch (Exception ex)

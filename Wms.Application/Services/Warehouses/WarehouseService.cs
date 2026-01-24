@@ -36,6 +36,7 @@ namespace Wms.Application.Services.Warehouses
             {
                 Code = dto.Code.Trim().ToUpperInvariant(),
                 Name = dto.Name.Trim(),
+                WarehouseType = dto.WarehouseType,
                 Address = dto.Address
             };
 
@@ -114,29 +115,49 @@ namespace Wms.Application.Services.Warehouses
         }
 
 
-        public async Task<(IEnumerable<WarehouseDto> Items, int Total)> QueryAsync(int page, int pageSize, string q, string sortBy, bool asc)
+        public async Task<(IEnumerable<WarehouseDto> Items, int Total)> QueryAsync(
+    int page,
+    int pageSize,
+    string q,
+    string sortBy,
+    bool asc)
         {
             var query = _db.Warehouses.AsQueryable();
+
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var t = q.Trim();
                 query = query.Where(w => w.Name.Contains(t) || w.Code.Contains(t));
             }
 
-
             var total = await query.CountAsync();
 
+            // sorting
+            query = sortBy?.ToLower() switch
+            {
+                "name" => asc
+                    ? query.OrderBy(w => w.Name)
+                    : query.OrderByDescending(w => w.Name),
 
-            // simple sorting
-            if (string.Equals(sortBy, "name", StringComparison.OrdinalIgnoreCase))
-                query = asc ? query.OrderBy(w => w.Name) : query.OrderByDescending(w => w.Name);
-            else
-                query = asc ? query.OrderBy(w => w.CreatedAt) : query.OrderByDescending(w => w.CreatedAt);
+                "warehousetype" => asc
+                    ? query.OrderBy(w => w.WarehouseType)
+                    : query.OrderByDescending(w => w.WarehouseType),
 
+                _ => asc
+                    ? query.OrderBy(w => w.CreatedAt)
+                    : query.OrderByDescending(w => w.CreatedAt),
+            };
 
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            // 👉 pageSize = 0 => lấy ALL
+            if (pageSize > 0)
+            {
+                query = query.Skip((page - 1) * pageSize).Take(pageSize);
+            }
+
+            var items = await query.ToListAsync();
             return (items.Select(Map), total);
         }
+
 
 
         public async Task LockAsync(Guid id, string reason = null)
@@ -310,6 +331,7 @@ namespace Wms.Application.Services.Warehouses
         {
             Id = w.Id,
             Code = w.Code,
+            WarehouseType = w.WarehouseType,
             Name = w.Name,
             Address = w.Address,
             Status = w.Status,

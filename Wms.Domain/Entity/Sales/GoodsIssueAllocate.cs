@@ -13,7 +13,7 @@ namespace Wms.Domain.Entity.Sales
     {
         public Guid Id { get; set; }  
         public Guid GoodsIssueItemId { get; set; }
-        public Guid LocationId { get; set; }
+        public Guid? LocationId { get; set; }
         [ForeignKey("LocationId")]
         public virtual Location Location { get; set; }
         public decimal AllocatedQty { get; set; }  

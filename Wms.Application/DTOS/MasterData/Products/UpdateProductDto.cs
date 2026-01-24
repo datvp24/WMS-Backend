@@ -12,5 +12,5 @@ public class UpdateProductDto
     public int UnitId { get; set; }
     public int BrandId { get; set; }
     public int SupplierId { get; set; }
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; }  
 }

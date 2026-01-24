@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Wms.Domain.Entity.Warehouses;
 using Wms.Application.DTOS.Warehouse;
+using Wms.Domain.Entity.MasterData;
+using Wms.Domain.Enums.location;
 
 namespace Wms.Application.DTOS.Warehouse
 {
@@ -12,6 +14,7 @@ namespace Wms.Application.DTOS.Warehouse
 
         [Required, MaxLength(200)]
         public string Name { get; set; }
+        public WarehouseType WarehouseType { get; set; }
 
 
         public string Address { get; set; }
@@ -45,6 +48,7 @@ namespace Wms.Application.DTOS.Warehouse
         public string Name { get; set; }
         public string Address { get; set; }
         public WarehouseStatus Status { get; set; }
+        public WarehouseType WarehouseType { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public ICollection<LocationDto> Locations { get; set; }

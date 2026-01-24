@@ -49,6 +49,7 @@ namespace Wms.Infrastructure.Persistence.Context
         public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
         public DbSet<GoodsReceipt> GoodsReceipts => Set<GoodsReceipt>();
         public DbSet<GoodsReceiptItem> GoodsReceiptItems => Set<GoodsReceiptItem>();
+        public DbSet<ProductionReceiptItem> ProductionReceiptItems => Set<ProductionReceiptItem>();
 
         // SALES
         public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();

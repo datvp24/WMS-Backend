@@ -36,7 +36,7 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Note")
@@ -249,7 +249,7 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("decimal(18,4)")
                         .HasDefaultValue(0m);
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<decimal>("LockedQuantity")
@@ -275,7 +275,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.HasIndex("WarehouseId", "LocationId", "ProductId")
+                    b.HasIndex("WarehouseId", "LocationId")
                         .IsUnique();
 
                     b.ToTable("Inventories", (string)null);
@@ -557,8 +557,12 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid>("PurchaseOrderId")
+                    b.Property<Guid?>("PurchaseOrderId")
+                        .IsRequired()
                         .HasColumnType("char(36)");
+
+                    b.Property<int>("ReceiptType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("ReceivedAt")
                         .HasColumnType("datetime(6)");
@@ -614,6 +618,40 @@ namespace Wms.Infrastructure.Migrations
                     b.HasIndex("GoodsReceiptId");
 
                     b.ToTable("GoodsReceiptItems", (string)null);
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Purchase.ProductionReceiptItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("GoodsReceiptId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Receipt_Qty")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoodsReceiptId");
+
+                    b.ToTable("ProductionReceiptItems");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.Purchase.PurchaseOrder", b =>
@@ -754,7 +792,7 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<Guid>("GoodsIssueItemId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("char(36)");
 
                     b.Property<decimal>("PickedQty")
@@ -954,7 +992,8 @@ namespace Wms.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
+                        .IsRequired()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Note")
@@ -1151,6 +1190,9 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("WarehouseType")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
@@ -1163,9 +1205,7 @@ namespace Wms.Infrastructure.Migrations
                 {
                     b.HasOne("Wms.Domain.Entity.Warehouses.Location", null)
                         .WithMany()
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("LocationId");
 
                     b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
                         .WithMany()
@@ -1242,13 +1282,12 @@ namespace Wms.Infrastructure.Migrations
                     b.HasOne("Wms.Domain.Entity.Warehouses.Location", null)
                         .WithMany()
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
+                    b.HasOne("Wms.Domain.Entity.MasterData.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", null)
@@ -1256,6 +1295,8 @@ namespace Wms.Infrastructure.Migrations
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.MasterData.Product", b =>
@@ -1308,6 +1349,17 @@ namespace Wms.Infrastructure.Migrations
                 {
                     b.HasOne("Wms.Domain.Entity.Purchase.GoodsReceipt", "GoodsReceipt")
                         .WithMany("Items")
+                        .HasForeignKey("GoodsReceiptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GoodsReceipt");
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Purchase.ProductionReceiptItem", b =>
+                {
+                    b.HasOne("Wms.Domain.Entity.Purchase.GoodsReceipt", "GoodsReceipt")
+                        .WithMany("Productions")
                         .HasForeignKey("GoodsReceiptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1374,9 +1426,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasOne("Wms.Domain.Entity.Warehouses.Location", "Location")
                         .WithMany()
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("LocationId");
 
                     b.Navigation("GoodsIssueItem");
 
@@ -1582,6 +1632,8 @@ namespace Wms.Infrastructure.Migrations
             modelBuilder.Entity("Wms.Domain.Entity.Purchase.GoodsReceipt", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Productions");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.Purchase.PurchaseOrder", b =>

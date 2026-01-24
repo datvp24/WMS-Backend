@@ -28,6 +28,7 @@ namespace Wms.Application.DTOS.Sales
         public Guid SOId { get; set; }
         public int Quantity { get; set; }
         public int Issued_Qty { get; set; }
+        public Guid? ShippingLocationId { get; set; }
         public GIStatus Status { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }

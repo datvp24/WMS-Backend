@@ -3,126 +3,336 @@ using Wms.Domain.Entity.Inventorys;
 using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Entity.Warehouses;
 using Wms.Domain.Enums;
+using Wms.Domain.Enums.Inventory;
+using Wms.Domain.Enums.location;
 using Wms.Infrastructure.Persistence.Context;
 
 namespace Wms.Infrastructure.Seed;
 
-public static class OtherSeeder
+public static class TechnicalPlasticWarehouseSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
-        // Chỉ seed nếu các bảng chính chưa có dữ liệu (tránh seed lặp)
-        if (await db.Units.AnyAsync()) return;
-
         var date = new DateTime(2026, 1, 3);
+        var random = new Random(2026);
 
-        // GUID cố định để dễ quản lý và debug
-        var whHn = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        var whHcm = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        var whDn = Guid.Parse("33333333-3333-3333-3333-333333333333");
-
-        var locA01 = Guid.Parse("a0000000-0000-0000-0000-000000000001");
-        var locA02 = Guid.Parse("a0000000-0000-0000-0000-000000000002");
-        var locB01 = Guid.Parse("a0000000-0000-0000-0000-000000000003");
-        var locX01 = Guid.Parse("a0000000-0000-0000-0000-000000000004");
-        var locY01 = Guid.Parse("a0000000-0000-0000-0000-000000000005");
-
-        // 1. Units
-        var units = new[]
+        // ================= UNITS (200) =================
+        if (!await db.Units.AnyAsync())
         {
-            new Unit { Id = 1, Code = "UNIT", Name = "Cái", IsActive = true, CreatedAt = date },
-            new Unit { Id = 2, Code = "BOX", Name = "Thùng", IsActive = true, CreatedAt = date },
-            new Unit { Id = 3, Code = "PACK", Name = "Gói", IsActive = true, CreatedAt = date },
-            new Unit { Id = 4, Code = "KG", Name = "Kilogram", IsActive = true, CreatedAt = date },
-            new Unit { Id = 5, Code = "METER", Name = "Mét", IsActive = true, CreatedAt = date }
-        };
-        db.Units.AddRange(units);
+            var unitTypes = new[]
+            {
+                ("KG", "Kilogram"), ("TON", "Tấn"), ("G", "Gram"),
+                ("M", "Mét"), ("M2", "Mét vuông"), ("M3", "Mét khối"),
+                ("SHEET", "Tấm"), ("ROLL", "Cuộn"), ("BAG", "Bao"),
+                ("PALLET", "Pallet"), ("BUNDLE", "Bó"), ("BOX", "Thùng"),
+                ("PIECE", "Cái"), ("SET", "Bộ")
+            };
 
-        // 2. Brands
-        var brands = new[]
+            var units = Enumerable.Range(1, 200).Select(i =>
+            {
+                var u = unitTypes[(i - 1) % unitTypes.Length];
+                return new Unit
+                {
+                    Code = $"{u.Item1}_{i:D3}",
+                    Name = $"{u.Item2} {i}",
+                    IsActive = random.Next(100) > 5, // 95% active
+                    CreatedAt = date.AddDays(-random.Next(1, 730))
+                };
+            }).ToList();
+
+            await db.Units.AddRangeAsync(units);
+            await db.SaveChangesAsync();
+        }
+
+        // ================= BRANDS (200) =================
+        if (!await db.Brands.AnyAsync())
         {
-            new Brand { Id = 1, Code = "BR001", Name = "Samsung", IsActive = true, Description = "Thương hiệu điện tử Hàn Quốc", CreatedAt = date },
-            new Brand { Id = 2, Code = "BR002", Name = "Apple", IsActive = true, Description = "Thương hiệu công nghệ Mỹ", CreatedAt = date },
-            new Brand { Id = 3, Code = "BR003", Name = "Sony", IsActive = true, Description = "Thương hiệu Nhật Bản", CreatedAt = date },
-            new Brand { Id = 4, Code = "BR004", Name = "Xiaomi", IsActive = true, Description = "Thương hiệu Trung Quốc", CreatedAt = date },
-            new Brand { Id = 5, Code = "BR005", Name = "Adidas", IsActive = true, Description = "Thương hiệu thể thao", CreatedAt = date }
-        };
-        db.Brands.AddRange(brands);
+            var brandNames = new[]
+            {
+                "DuPont", "BASF", "Sabic", "Covestro", "Mitsubishi Chemical",
+                "Evonik", "DSM", "Solvay", "Celanese", "Toray",
+                "LG Chem", "Formosa Plastics", "Chi Mei", "Samsung SDI", "SK Chemicals",
+                "Teijin", "Asahi Kasei", "Daicel", "Kaneka", "Kuraray",
+                "Arkema", "Borealis", "Ineos", "LyondellBasell", "Braskem"
+            };
 
-        // 3. Categories
-        var categories = new[]
+            var brands = Enumerable.Range(1, 200).Select(i => new Brand
+            {
+                Code = $"BR_{i:D4}",
+                Name = i <= brandNames.Length
+                    ? brandNames[i - 1]
+                    : $"{brandNames[i % brandNames.Length]} {i / brandNames.Length + 1}",
+                IsActive = true,
+                CreatedAt = date.AddDays(-random.Next(1, 1095))
+            }).ToList();
+
+            await db.Brands.AddRangeAsync(brands);
+            await db.SaveChangesAsync();
+        }
+
+        // ================= CATEGORIES (200) =================
+        if (!await db.Categories.AnyAsync())
         {
-            new Category { Id = 1, Code = "CAT001", Name = "Điện thoại di động", IsActive = true, CreatedAt = date },
-            new Category { Id = 2, Code = "CAT002", Name = "Laptop", IsActive = true, CreatedAt = date },
-            new Category { Id = 3, Code = "CAT003", Name = "Tai nghe", IsActive = true, CreatedAt = date },
-            new Category { Id = 4, Code = "CAT004", Name = "Giày thể thao", IsActive = true, CreatedAt = date },
-            new Category { Id = 5, Code = "CAT005", Name = "Phụ kiện", IsActive = true, CreatedAt = date }
-        };
-        db.Categories.AddRange(categories);
+            var categoryGroups = new[]
+            {
+                // Engineering Plastics
+                "ABS", "PC", "PA6", "PA66", "POM", "PMMA", "PBT", "PET",
+                "PSU", "PPS", "PEEK", "PEI", "LCP", "PAI", "PI",
+                // Commodity Plastics
+                "PP", "PE-HD", "PE-LD", "PS", "PVC", "EVA",
+                // Specialty Plastics
+                "TPU", "TPE", "TPV", "PTFE", "FEP", "PFA",
+                // Composite Materials
+                "PC+ABS", "PC+PBT", "PA+GF", "PP+GF", "Nylon GF",
+                // Recycled Materials
+                "R-ABS", "R-PC", "R-PP", "R-PE", "R-PET"
+            };
 
-        // 4. Suppliers
-        var suppliers = new[]
+            var categories = Enumerable.Range(1, 200).Select(i =>
+            {
+                var catType = categoryGroups[(i - 1) % categoryGroups.Length];
+                var suffix = i > categoryGroups.Length ? $" Grade {(i - 1) / categoryGroups.Length + 1}" : "";
+
+                return new Category
+                {
+                    Code = $"CAT_{i:D4}",
+                    Name = $"{catType}{suffix}",
+                    IsActive = true,
+                    CreatedAt = date.AddDays(-random.Next(1, 900))
+                };
+            }).ToList();
+
+            await db.Categories.AddRangeAsync(categories);
+            await db.SaveChangesAsync();
+        }
+
+        // ================= SUPPLIERS (200) =================
+        if (!await db.Suppliers.AnyAsync())
         {
-            new Supplier { Id = 1, Code = "SUP001", Name = "Công ty TNHH Samsung Việt Nam", Email = "samsung@supplier.com", Phone = "0123456789", Address = "KCN Yên Phong, Bắc Ninh", IsActive = true, CreatedAt = date },
-            new Supplier { Id = 2, Code = "SUP002", Name = "Apple Việt Nam", Email = "apple@supplier.com", Phone = "0987654321", Address = "Hà Nội", IsActive = true, CreatedAt = date },
-            new Supplier { Id = 3, Code = "SUP003", Name = "Công ty Sony Việt Nam", Email = "sony@supplier.com", Phone = "0912345678", Address = "TP.HCM", IsActive = true, CreatedAt = date },
-            new Supplier { Id = 4, Code = "SUP004", Name = "Xiaomi Việt Nam", Email = "xiaomi@supplier.com", Phone = "0934567890", Address = "Hà Nội", IsActive = true, CreatedAt = date },
-            new Supplier { Id = 5, Code = "SUP005", Name = "Adidas Việt Nam", Email = "adidas@supplier.com", Phone = "0901234567", Address = "TP.HCM", IsActive = true, CreatedAt = date }
-        };
-        db.Suppliers.AddRange(suppliers);
+            var supplierPrefixes = new[]
+            {
+                "Việt Nam Plastic", "Sài Gòn Polymer", "Hà Nội Engineering",
+                "Global Resin", "Asia Pacific Material", "Euro Tech Plastic",
+                "Japan Chemical", "Korea Polymer", "China Plastics",
+                "Thai Engineering Material", "Singapore Resin", "Taiwan Polymer",
+                "Delta Plastics", "Pacific Material", "Golden Resin",
+                "Star Engineering", "Diamond Polymer", "Royal Plastics",
+                "Premier Material", "Elite Engineering", "Supreme Resin"
+            };
 
-        // 5. Customers
-        var customers = new[]
+            var districts = new[]
+            {
+                "Quận 1, TP.HCM", "Quận Bình Thạnh, TP.HCM", "Quận 7, TP.HCM",
+                "Thủ Đức, TP.HCM", "Bình Dương", "Đồng Nai", "Long An",
+                "Ba Đình, Hà Nội", "Cầu Giấy, Hà Nội", "Hai Bà Trưng, Hà Nội",
+                "Hải Châu, Đà Nẵng", "Ngũ Hành Sơn, Đà Nẵng"
+            };
+
+            var suppliers = Enumerable.Range(1, 200).Select(i => new Supplier
+            {
+                Code = $"SUP_{i:D4}",
+                Name = i <= supplierPrefixes.Length
+                    ? $"{supplierPrefixes[i - 1]} Co., Ltd"
+                    : $"{supplierPrefixes[i % supplierPrefixes.Length]} {i / supplierPrefixes.Length + 1} Co., Ltd",
+                Email = $"sales{i}@supplier{i}.com",
+                Phone = $"(+84) {random.Next(20, 99)}{random.Next(1000000, 9999999)}",
+                Address = $"{random.Next(1, 999)} Đường {random.Next(1, 50)}, {districts[i % districts.Length]}",
+                IsActive = random.Next(100) > 3, // 97% active
+                CreatedAt = date.AddDays(-random.Next(1, 1200))
+            }).ToList();
+
+            await db.Suppliers.AddRangeAsync(suppliers);
+            await db.SaveChangesAsync();
+        }
+
+        // ================= WAREHOUSES (200) =================
+        if (!await db.Warehouses.AnyAsync())
         {
-            new Customer { Id = 1, Code = "CUS001", Name = "Nguyễn Văn A", Email = "nguyenvana@gmail.com", Phone = "0901001001", Address = "Hà Nội", IsActive = true, CreatedAt = date },
-            new Customer { Id = 2, Code = "CUS002", Name = "Trần Thị B", Email = "tranthib@gmail.com", Phone = "0902002002", Address = "TP.HCM", IsActive = true, CreatedAt = date },
-            new Customer { Id = 3, Code = "CUS003", Name = "Lê Văn C", Email = "levanc@gmail.com", Phone = "0903003003", Address = "Đà Nẵng", IsActive = true, CreatedAt = date },
-            new Customer { Id = 4, Code = "CUS004", Name = "Công ty ABC", Email = "abc@company.com", Phone = "0281234567", Address = "Quận 1, TP.HCM", IsActive = true, CreatedAt = date },
-            new Customer { Id = 5, Code = "CUS005", Name = "Công ty XYZ", Email = "xyz@company.com", Phone = "0249876543", Address = "Cầu Giấy, Hà Nội", IsActive = true, CreatedAt = date }
-        };
-        db.Customers.AddRange(customers);
+            var warehouseAreas = new[]
+            {
+                ("Bình Dương", "KCN Việt Nam Singapore"),
+                ("Đồng Nai", "KCN Long Thành"),
+                ("Long An", "KCN Tân Đô"),
+                ("Bà Rịa-Vũng Tàu", "KCN Phú Mỹ"),
+                ("TP.HCM", "KCN Tân Bình"),
+                ("Hà Nội", "KCN Thăng Long"),
+                ("Hải Phòng", "KCN VSIP Hải Phòng"),
+                ("Đà Nẵng", "KCN Hòa Khánh"),
+                ("Bắc Ninh", "KCN Yên Phong"),
+                ("Hưng Yên", "KCN Phố Nối"),
+                ("Hải Dương", "KCN Nam Sách"),
+                ("Quảng Ninh", "KCN Cái Lân")
+            };
 
-        // 6. Warehouses
-        db.Warehouses.AddRange(
-            new Warehouse { Id = whHn, Code = "WH-HN", Name = "Kho Hà Nội", Address = "KCN Thăng Long, Hà Nội", Status = WarehouseStatus.Active, CreatedAt = date },
-            new Warehouse { Id = whHcm, Code = "WH-HCM", Name = "Kho TP.HCM", Address = "KCN Tân Bình, TP.HCM", Status = WarehouseStatus.Active, CreatedAt = date },
-            new Warehouse { Id = whDn, Code = "WH-DN", Name = "Kho Đà Nẵng", Address = "KCN Hòa Khánh, Đà Nẵng", Status = WarehouseStatus.Active, CreatedAt = date }
-        );
+            var warehouses = Enumerable.Range(1, 200).Select(i =>
+            {
+                var area = warehouseAreas[(i - 1) % warehouseAreas.Length];
+                return new Warehouse
+                {
+                    Id = Guid.NewGuid(),
+                    Code = $"WH_{i:D3}",
+                    Name = $"Kho {area.Item1} {(i - 1) / warehouseAreas.Length + 1}",
+                    Address = $"Lô {random.Next(1, 50)}, {area.Item2}, {area.Item1}",
+                    WarehouseType = (WarehouseType)(i % 4),
+                    Status = random.Next(100) > 10 ? WarehouseStatus.Active : WarehouseStatus.Inactive,
+                    CreatedAt = date.AddDays(-random.Next(1, 1000))
+                };
+            }).ToList();
 
-        // 7. Locations
-        db.Locations.AddRange(
-            new Location { Id = locA01, WarehouseId = whHn, Code = "A01", Description = "Kệ A - Tầng 1", IsActive = true, CreatedAt = date },
-            new Location { Id = locA02, WarehouseId = whHn, Code = "A02", Description = "Kệ A - Tầng 2", IsActive = true, CreatedAt = date },
-            new Location { Id = locB01, WarehouseId = whHn, Code = "B01", Description = "Kệ B - Tầng 1", IsActive = true, CreatedAt = date },
-            new Location { Id = locX01, WarehouseId = whHcm, Code = "X01", Description = "Kệ X - Khu vực lạnh", IsActive = true, CreatedAt = date },
-            new Location { Id = locY01, WarehouseId = whHcm, Code = "Y01", Description = "Kệ Y - Khu vực thường", IsActive = true, CreatedAt = date }
-        );
+            await db.Warehouses.AddRangeAsync(warehouses);
+            await db.SaveChangesAsync();
+        }
 
-        await db.SaveChangesAsync(); // Lưu để có Id cho các entity tiếp theo
+        var warehouseIds = await db.Warehouses.Select(x => x.Id).ToListAsync();
 
-        // 8. Products
-        var products = new[]
+        // ================= LOCATIONS (200) =================
+        if (!await db.Locations.AnyAsync())
         {
-            new Product { Id = 1, Code = "PROD001", Name = "iPhone 15 Pro", Description = "Điện thoại Apple mới nhất", IsActive = true, CategoryId = 1, UnitId = 1, BrandId = 2, SupplierId = 2, CreatedAt = date },
-            new Product { Id = 2, Code = "PROD002", Name = "Galaxy S24 Ultra", Description = "Flagship Samsung", IsActive = true, CategoryId = 1, UnitId = 1, BrandId = 1, SupplierId = 1, CreatedAt = date },
-            new Product { Id = 3, Code = "PROD003", Name = "MacBook Pro M3", Description = "Laptop Apple", IsActive = true, CategoryId = 2, UnitId = 1, BrandId = 2, SupplierId = 2, CreatedAt = date },
-            new Product { Id = 4, Code = "PROD004", Name = "Xperia 1 V", Description = "Điện thoại Sony", IsActive = true, CategoryId = 1, UnitId = 1, BrandId = 3, SupplierId = 3, CreatedAt = date },
-            new Product { Id = 5, Code = "PROD005", Name = "AirPods Pro 2", Description = "Tai nghe không dây Apple", IsActive = true, CategoryId = 3, UnitId = 1, BrandId = 2, SupplierId = 2, CreatedAt = date },
-            new Product { Id = 6, Code = "PROD006", Name = "Ultraboost 23", Description = "Giày chạy Adidas", IsActive = true, CategoryId = 4, UnitId = 1, BrandId = 5, SupplierId = 5, CreatedAt = date }
-        };
-        db.Products.AddRange(products);
-        await db.SaveChangesAsync();
+            var locationTypes = new[] { "Kệ lưu trữ", "Khu vực tập kết", "Khu vực chờ" };
 
-        // 9. Inventories (tồn kho mẫu)
-        db.Inventories.AddRange(
-            new Inventory { Id = Guid.NewGuid(), WarehouseId = whHn, LocationId = locA01, ProductId = 1, OnHandQuantity = 50, LockedQuantity = 0, InTransitQuantity = 0, CreatedAt = date },
-            new Inventory { Id = Guid.NewGuid(), WarehouseId = whHn, LocationId = locA02, ProductId = 2, OnHandQuantity = 30, LockedQuantity = 5, InTransitQuantity = 10, CreatedAt = date },
-            new Inventory { Id = Guid.NewGuid(), WarehouseId = whHn, LocationId = locB01, ProductId = 3, OnHandQuantity = 20, LockedQuantity = 0, InTransitQuantity = 0, CreatedAt = date },
-            new Inventory { Id = Guid.NewGuid(), WarehouseId = whHcm, LocationId = locX01, ProductId = 4, OnHandQuantity = 40, LockedQuantity = 0, InTransitQuantity = 0, CreatedAt = date },
-            new Inventory { Id = Guid.NewGuid(), WarehouseId = whHcm, LocationId = locY01, ProductId = 5, OnHandQuantity = 100, LockedQuantity = 10, InTransitQuantity = 0, CreatedAt = date },
-            new Inventory { Id = Guid.NewGuid(), WarehouseId = whHcm, LocationId = locY01, ProductId = 6, OnHandQuantity = 80, LockedQuantity = 0, InTransitQuantity = 20, CreatedAt = date }
-        );
+            var locations = Enumerable.Range(1, 200).Select(i =>
+            {
+                var zone = (char)('A' + (i - 1) / 25);
+                var row = ((i - 1) % 25) / 5 + 1;
+                var bay = (i - 1) % 5 + 1;
+                var level = random.Next(1, 6);
+                var locType = (LocationType)(i % 3);
 
-        await db.SaveChangesAsync();
+                return new Location
+                {
+                    Id = Guid.NewGuid(),
+                    WarehouseId = warehouseIds[i % warehouseIds.Count],
+                    Code = $"{zone}{row:D2}-{bay:D2}-{level:D2}",
+                    Type = locType,
+                    Description = $"{locationTypes[(int)locType]} - Zone {zone}, Hàng {row}, Cột {bay}, Tầng {level}",
+                    IsActive = random.Next(100) > 8, // 92% active
+                    CreatedAt = date.AddDays(-random.Next(1, 800))
+                };
+            }).ToList();
+
+            await db.Locations.AddRangeAsync(locations);
+            await db.SaveChangesAsync();
+        }
+
+        var locationIds = await db.Locations.Select(x => x.Id).ToListAsync();
+
+        // ================= PRODUCTS (200) =================
+        if (!await db.Products.AnyAsync())
+        {
+            var unitIds = await db.Units.Select(x => x.Id).ToListAsync();
+            var brandIds = await db.Brands.Select(x => x.Id).ToListAsync();
+            var categoryIds = await db.Categories.Select(x => x.Id).ToListAsync();
+            var supplierIds = await db.Suppliers.Select(x => x.Id).ToListAsync();
+
+            var plasticTypes = new[]
+            {
+                "ABS Natural", "ABS Black", "PC Clear", "PC Smoke",
+                "PA6 Natural", "PA66 Black", "POM White", "POM Black",
+                "PMMA Clear", "PBT Black", "PET Natural", "PP Natural",
+                "PE-HD Natural", "PS Crystal", "PVC Transparent",
+                "TPU 95A", "TPE Shore 60", "PEEK Natural",
+                "PC+ABS Black", "PA6+GF30", "PP+GF20"
+            };
+
+            var products = Enumerable.Range(1, 200).Select(i =>
+            {
+                var plasticType = plasticTypes[(i - 1) % plasticTypes.Length];
+                var grade = $"Grade {random.Next(100, 999)}";
+                var mfi = random.Next(5, 50);
+
+                return new Product
+                {
+                    Code = $"PROD_{i:D4}",
+                    Name = i > plasticTypes.Length
+                        ? $"{plasticType} {grade} MFI{mfi}"
+                        : $"{plasticType} {grade}",
+                    Type = (ProductType)(i % 2),
+                    UnitId = unitIds[i % unitIds.Count],
+                    BrandId = brandIds[i % brandIds.Count],
+                    CategoryId = categoryIds[i % categoryIds.Count],
+                    SupplierId = supplierIds[i % supplierIds.Count],
+                    IsActive = random.Next(100) > 5, // 95% active
+                    CreatedAt = date.AddDays(-random.Next(1, 600))
+                };
+            }).ToList();
+
+            await db.Products.AddRangeAsync(products);
+            await db.SaveChangesAsync();
+        }
+
+        // ================= CUSTOMERS (200) =================
+        if (!await db.Customers.AnyAsync())
+        {
+            var customerPrefixes = new[]
+            {
+        "Molding Precision", "Auto Part Tech", "Electronic Component",
+        "Plastic Solution", "Smart Design", "Industrial Manufacturing",
+        "Home Appliance", "Medical Device", "Packaging Expert",
+        "Alpha Polymer", "Sigma Engineering", "Omega Tech",
+        "Vina Molding", "Sài Gòn Injection", "Hà Nội Tooling",
+        "Mekong Plastic", "Red River Tech", "Pacific Manufacturing"
+    };
+
+            var districts = new[]
+            {
+        "Quận 9, TP.HCM", "Quận 12, TP.HCM", "KCN Tân Tạo, TP.HCM",
+        "KCN Amata, Đồng Nai", "KCN VSIP, Bình Dương", "KCN Quế Võ, Bắc Ninh",
+        "KCN Thăng Long, Hà Nội", "KCN Quang Minh, Hà Nội", "Hải Phòng",
+        "Vĩnh Phúc", "Long An", "Bắc Giang"
+    };
+
+            var customers = Enumerable.Range(1, 200).Select(i => new Customer
+            {
+                Code = $"CUS_{i:D4}",
+                Name = i <= customerPrefixes.Length
+                    ? $"{customerPrefixes[i - 1]} JSC"
+                    : $"{customerPrefixes[i % customerPrefixes.Length]} No.{i / customerPrefixes.Length + 1} Corp",
+                Email = $"contact{i}@customer{i}.vn",
+                Phone = $"(+84) {random.Next(20, 99)}{random.Next(1000000, 9999999)}",
+                Address = $"{random.Next(10, 500)} Đường số {random.Next(1, 100)}, {districts[i % districts.Length]}",
+                IsActive = true,
+                CreatedAt = date.AddDays(-random.Next(1, 1500))
+            }).ToList();
+
+            await db.Customers.AddRangeAsync(customers);
+            await db.SaveChangesAsync();
+        }
+        // ================= INVENTORIES (200) =================
+        if (!await db.Inventories.AnyAsync())
+        {
+            var productIds = await db.Products.Select(x => x.Id).ToListAsync();
+
+            var inventories = Enumerable.Range(1, 200).Select(i =>
+            {
+                var onHand = random.Next(50, 10000);
+                var locked = random.Next(0, (int)(onHand * 0.2));
+                var inTransit = random.Next(0, (int)(onHand * 0.3));
+
+                return new Inventory
+                {
+                    Id = Guid.NewGuid(),
+                    WarehouseId = warehouseIds[i % warehouseIds.Count],
+                    LocationId = locationIds[i % locationIds.Count],
+                    ProductId = productIds[i % productIds.Count],
+                    OnHandQuantity = onHand,
+                    LockedQuantity = locked,
+                    InTransitQuantity = inTransit,
+                    CreatedAt = date.AddDays(-random.Next(1, 500))
+                };
+            }).ToList();
+
+            await db.Inventories.AddRangeAsync(inventories);
+            await db.SaveChangesAsync();
+        }
+
+        Console.WriteLine("✅ SEED DATA HOÀN TẤT - 200 DÒNG/BẢNG - KHO NHỰA KỸ THUẬT");
+        Console.WriteLine($"   📦 Units: 200");
+        Console.WriteLine($"   🏷️  Brands: 200");
+        Console.WriteLine($"   📂 Categories: 200");
+        Console.WriteLine($"   🏢 Suppliers: 200");
+        Console.WriteLine($"   🏭 Warehouses: 200");
+        Console.WriteLine($"   📍 Locations: 200");
+        Console.WriteLine($"   🔧 Products: 200");
+        Console.WriteLine($"   📊 Inventories: 200");
     }
 }
