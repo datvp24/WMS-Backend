@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Wms.Application.DTOS.Sales;
+using Wms.Domain.Entity.Sales;
 
 namespace Wms.Application.Interfaces.Service.Sales
 {
@@ -16,5 +17,8 @@ namespace Wms.Application.Interfaces.Service.Sales
         Task<List<SalesOrderDto>> QuerySOsAsync(SalesOrderQueryDto dto);
         Task Picking(GoodsIssueItemDto dto);
         Task<GoodsIssueDetailDto?> GetGoodsIssueDetailAsync(Guid goodsIssueId);
+        Task<GoodsIssueDto> CreateProductionGIAsync(
+            ProductionGoodsIssueCreateDto dto);
+        Task<GoodsIssueDto> ApproveGIAsync(Guid giId);
     }
 }

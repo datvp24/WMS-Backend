@@ -60,6 +60,13 @@ namespace Wms.Application.Services.Warehouses
             return listwarehouses;
         }
 
+        public async Task<List<Warehouse>> GetByWarehouseType(WarehousesbyTypeDto dto)
+        {
+            var warehouselist = _db.Warehouses.Where(s=>s.WarehouseType == dto.warehousetype).ToList();
+            if (warehouselist == null) throw new Exception("Không có kho nào thuộc loại trên");
+            return warehouselist;
+        }
+
         public async Task<WarehouseDto> UpdateAsync(WarehouseUpdateDto dto)
         {
             var entity = await _db.Warehouses.FindAsync(dto.Id);
@@ -122,6 +129,7 @@ namespace Wms.Application.Services.Warehouses
     string sortBy,
     bool asc)
         {
+            page = page < 1 ? 1 : page;
             var query = _db.Warehouses.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(q))

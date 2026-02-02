@@ -2,6 +2,7 @@
 using Wms.Application.DTOS.Purchase;
 using Wms.Application.Interfaces.Services.Purchase;
 using Wms.Api.Middlewares;
+using Wms.Domain.Entity.Purchase;
 
 namespace Wms.Api.Controllers;
 
@@ -48,7 +49,54 @@ public class PurchaseController : ControllerBase
         if (po == null) return NotFound();
         return Ok(po);
     }
+    [HttpGet("grbytype")]
+    [HasPermission("purchase.po.view")]
+    public async Task<ActionResult<List<GoodsReceiptDto>>> GetGRsByType(
+    [FromQuery] GRByTypeDto dto)
+    {
+        var entities = await _purchaseService.getGRbytype(dto);
 
+        // ✅ Map sang DTO để tránh circular reference
+        var result = entities.Select(gr => new GoodsReceiptDto
+        {
+            Id = gr.Id,
+            Code = gr.Code,
+            PurchaseOrderId = gr.PurchaseOrderId,
+            WarehouseId = gr.WarehouseId,
+            ReceiptType = gr.ReceiptType,
+            Status = gr.Status,
+            CreatedAt = gr.CreatedAt,
+            UpdatedAt = gr.UpdatedAt,
+
+            // ✅ Map Items - CHỈ LẤY DATA CẦN THIẾT
+            Items = gr.Items.Select(i => new GoodsReceiptItemDto
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                Quantity = i.Quantity,
+                Received_Qty = i.Received_Qty,
+                Status = i.Status,
+                CreatedAt = i.CreatedAt,
+                UpdatedAt = i.UpdatedAt
+                // ❌ KHÔNG map GoodsReceipt để tránh circular
+            }).ToList(),
+
+            // ✅ Map ProductionReceiptItems
+            ProductionReceiptItems = gr.Productions.Select(p => new ProductionReceiptItemDto
+            {
+                Id = p.Id,
+                ProductId = p.ProductId,
+                Quantity = p.Quantity,
+                Receipt_Qty = p.Receipt_Qty,
+                Status = p.Status,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt
+            }).ToList()
+
+        }).ToList();
+
+        return Ok(result);
+    }
     [HttpGet("po")]
     [HasPermission("purchase.po.view")]
     public async Task<ActionResult<List<PurchaseOrderDto>>> GetPOs(
@@ -103,6 +151,20 @@ public class PurchaseController : ControllerBase
     // ========================
     // GOODS RECEIPT
     // ========================
+    [HttpPost("gr-production-approve")]
+    [HasPermission("purchase.gr.approve")]
+    public async Task<ActionResult<GoodsReceiptDto>> ApproveGRProduction([FromBody] GoodsReceiptDto dto)
+    {
+        var gr = await _purchaseService.ApproveProductionReceipt(dto);
+        return gr;
+    }
+    [HttpPost("gr-production-counting")]
+    [HasPermission("purchase.gr.Counting")]
+    public async Task<ActionResult<GoodsReceiptDto>> CountingGRProduction([FromBody] GoodsReceiptDto dto)
+    {
+        var gr = await _purchaseService.CountingReceiptProduction(dto);
+        return gr;
+    }
 
     [HttpPost("gr")]
     [HasPermission("purchase.gr.create")]

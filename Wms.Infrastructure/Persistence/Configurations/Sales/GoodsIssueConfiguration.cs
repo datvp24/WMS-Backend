@@ -20,9 +20,6 @@ public class GoodsIssueConfiguration : IEntityTypeConfiguration<GoodsIssue>
 
         // IssuedAt
         // Dùng kiểu datetime chuẩn MySQL để tránh lỗi Invalid default
-        builder.Property(x => x.IssuedAt)
-               .HasColumnType("datetime")
-               .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         // Quan hệ với SalesOrder
         builder.HasOne(x => x.SalesOrder)

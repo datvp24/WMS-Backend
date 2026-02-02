@@ -78,7 +78,11 @@ public static class AuthSeeder
 
                 // Purchases
                 new Permission { Code = "purchase.po.create", Description = "Create purchase orders" },
+                new Permission { Code = "purchase.gr.receive", Description = "Receive goods receipts" },
+
                 new Permission { Code = "purchase.po.view", Description = "View purchase orders" },
+                new Permission { Code = "purchase.gr.Counting", Description = "production counting" },
+                new Permission { Code = "purchase.gr.approve", Description = "production approve" },
                 new Permission { Code = "purchase.po.approve", Description = "Approve purchase orders" },
                 new Permission { Code = "purchase.po.reject", Description = "Reject purchase orders" },
                 new Permission { Code = "purchase.gr.create", Description = "Create goods receipts" },

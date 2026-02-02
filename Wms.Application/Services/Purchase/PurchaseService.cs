@@ -1,17 +1,20 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Net.NetworkInformation;
+using System.Reflection.Metadata.Ecma335;
 using Wms.Application.DTOS.Purchase;
+using Wms.Application.DTOS.StockTake;
+using Wms.Application.Exceptions;
 using Wms.Application.Interfaces.Services;
 using Wms.Application.Interfaces.Services.Inventory;
 using Wms.Application.Interfaces.Services.Purchase;
+using Wms.Application.Interfaces.Services.Warehouse;
 using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Entity.Purchase;
 using Wms.Domain.Entity.Warehouses;
 using Wms.Domain.Enums.Inventory;
-using Wms.Application.Interfaces.Services.Warehouse;
-using Wms.Infrastructure.Persistence.Context;
 using Wms.Domain.Enums.Purchase;
+using Wms.Infrastructure.Persistence.Context;
 
 namespace Wms.Application.Services.Purchase;
 
@@ -53,6 +56,26 @@ public class PurchaseService : IPurchaseService
 
     public async Task<PurchaseOrderDto> CreatePOAsync(PurchaseOrderDto dto)
     {
+        foreach (var item in dto.Items)
+        {
+            var warehouse = await _db.Warehouses
+                .FirstOrDefaultAsync(s => s.Id == item.WarehouseId);
+
+            if (warehouse == null)
+                throw new BusinessException(
+                    "WAREHOUSE_NOT_FOUND",
+                    "Kho nhận không tồn tại"
+                );
+
+            if (warehouse.WarehouseType != WarehouseType.RawMaterial)
+                throw new BusinessException(
+                    "INVALID_WAREHOUSE_TYPE",
+                    $"Kho \"{warehouse.Name}\" không phải kho nguyên vật liệu, không thể nhập hàng"
+                );
+        }
+
+
+        //THÊM CHECK WAREHOUSE TYPE
         var po = new PurchaseOrder
         {
             Id = Guid.NewGuid(),
@@ -213,22 +236,28 @@ public class PurchaseService : IPurchaseService
         if (dto.WarehouseId == Guid.Empty)
             throw new BusinessRuleException("WarehouseId is required");
 
+        var warehousecheck = _db.Warehouses.FirstOrDefault(s => s.Id == dto.WarehouseId);
+        if (warehousecheck.WarehouseType != WarehouseType.FinishedGoods)
+            throw new Exception("Chỉ có thể nhập kho thành phẩm");
 
-        using var transaction = await _db.Database.BeginTransactionAsync();
-        try
+        var strategy = _db.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
         {
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+
             var gr = new GoodsReceipt
             {
                 Id = Guid.NewGuid(),
                 Code = dto.Code,
                 PurchaseOrderId = dto.PurchaseOrderId,
+                ReceiptType = ReceiptType.Production,
                 WarehouseId = dto.WarehouseId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 Productions = dto.ProductionReceiptItems.Select(i => new ProductionReceiptItem
                 {
                     Id = Guid.NewGuid(),
-                    GoodsReceiptId = i.GoodsReceiptId,
                     ProductId = i.ProductId,
                     Quantity = i.Quantity,
                     Receipt_Qty = i.Receipt_Qty,
@@ -238,23 +267,105 @@ public class PurchaseService : IPurchaseService
                 }).ToList()
             };
 
-            _db.Set<GoodsReceipt>().Add(gr);
+            _db.GoodsReceipts.Add(gr);
+
+            // update inventory ở đây (cùng DbContext)
             await _db.SaveChangesAsync();
 
-            // Update inventory
-
             await transaction.CommitAsync();
-            return MapGRToDto(gr);
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+
+            return MapProductionGRToDto(gr);
+        });
     }
 
     // Hàm Approve cho productionGR
-    
+
+    public async Task<GoodsReceiptDto> ApproveProductionReceipt(GoodsReceiptDto dto)
+    {
+        var gr = await _db.GoodsReceipts.FirstOrDefaultAsync(s => s.Id == dto.Id);
+        if (gr == null)
+            throw new Exception("Đơn nhập không tồn tại");
+        if (gr.Status == Status.Approve)
+            throw new Exception("Chỉ có thể chấp thuân(Approve) đơn nhập có trạng thái là đang xử lý(Pending)");
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            gr.Status = Status.Approve;
+            await _db.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return MapProductionGRToDto(gr);
+        });
+    }
+
+    //Hàm couting cho ProductionGR
+
+    public async Task<List<GoodsReceipt>> getGRbytype(GRByTypeDto dto)
+    {
+        var GRlist = _db.GoodsReceipts.Include(s=> s.Items).Include(s=>s.Productions).Where(s=>s.ReceiptType == dto.ReceiptType).ToList();
+        return GRlist;
+    }
+
+    public async Task<GoodsReceiptDto> CountingReceiptProduction(GoodsReceiptDto dto)
+    {
+        var strategy = _db.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+
+            var gr = await _db.GoodsReceipts
+                .Include(s => s.Productions)
+                .FirstOrDefaultAsync(s => s.Id == dto.Id);
+
+            if (gr == null)
+                throw new Exception("Mã đơn nhập không tồn tại");
+
+            if (gr.Status != Status.Approve && gr.Status != Status.Partically_Received)
+                throw new Exception("Đơn nhập không hợp lệ để kiểm đếm");
+
+            var location = await _locationService.GetReceivingLocationId(dto.WarehouseId);
+
+            foreach (var item in dto.ProductionReceiptItems)
+            {
+                if (item.Receipt_Qty <= 0)
+                    continue;
+
+                var production = gr.Productions.FirstOrDefault(s => s.Id == item.Id);
+                if (production == null)
+                    throw new Exception("Chi tiết sản phẩm nhập không tồn tại");
+
+                if (production.Receipt_Qty + item.Receipt_Qty > production.Quantity)
+                    throw new Exception("Số lượng nhận vượt quá số lượng yêu cầu");
+
+                production.Receipt_Qty += item.Receipt_Qty;
+
+                production.Status = production.Receipt_Qty == production.Quantity
+                    ? GRIStatus.Complete
+                    : GRIStatus.Partial;
+
+                await _inventoryService.AdjustAsync(
+                    dto.WarehouseId,
+                    location,
+                    item.ProductId,
+                    item.Receipt_Qty,
+                    InventoryActionType.Receive
+                );
+            }
+
+            if (gr.Productions.All(s => s.Status == GRIStatus.Complete))
+                gr.Status = Status.Complete;
+            else if (gr.Productions.Any(s => s.Status != GRIStatus.Pending))
+                gr.Status = Status.Partically_Received;
+
+            await _db.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return MapProductionGRToDto(gr);
+        });
+    }
+
 
     // Không paging
     public async Task<List<GoodsReceiptDto>> GetGRsAsync(Guid? poId = null)
@@ -351,66 +462,28 @@ public class PurchaseService : IPurchaseService
     }
 
     // Có paging
-    public async Task<List<GoodsReceiptDto>> GetGRsAsync(Guid? poId = null, int page = 1, int pageSize = 20)
+    public async Task<List<GoodsReceiptDto>> GetGRsAsync(
+    Guid? poId = null,
+    int page = 1,
+    int pageSize = 20)
     {
-        var query = _db.Set<GoodsReceipt>().Include(x => x.Items).AsQueryable();
+        var query = _db.Set<GoodsReceipt>()
+            .Include(x => x.Items)
+            .Include(x => x.Productions)
+            .AsQueryable();
+
         if (poId.HasValue)
             query = query.Where(x => x.PurchaseOrderId == poId.Value);
 
-        var grs = await query.OrderByDescending(x => x.CreatedAt)
-                             .Skip((page - 1) * pageSize)
-                             .Take(pageSize)
-                             .ToListAsync();
+        var grs = await query
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         return grs.Select(MapGRToDto).ToList();
     }
-    public async Task CreateGIByProduction(GoodsReceiptDto dto)
-    {
-        var GR = new GoodsReceipt()
-        {
-            Id = new Guid(),
-            Code = dto.Code,
-            WarehouseId = dto.WarehouseId,
-            Status = Status.Pending,
-            ReceiptType = ReceiptType.Production,
 
-        };
-    }
-    private async Task<PurchaseOrderDto> MapPOWithReceivedQtyAsync(PurchaseOrder po)
-    {
-        // Lấy tổng số lượng đã nhận từ các phiếu GR (GoodsReceipt) liên quan đến PO này
-        var receivedQtys = await _db.Set<GoodsReceiptItem>()
-            .Where(gri => gri.GoodsReceipt.PurchaseOrderId == po.Id)
-            .GroupBy(gri => gri.ProductId)
-            .Select(g => new {
-                ProductId = g.Key,
-                TotalReceived = g.Sum(x => x.Quantity)
-            })
-            .ToListAsync();
-
-        return new PurchaseOrderDto
-        {
-            Id = po.Id,
-            Code = po.Code,
-            SupplierId = po.SupplierId,
-            Status = po.Status,
-            CreatedAt = po.CreatedAt,
-            UpdatedAt = po.UpdatedAt,
-            ApprovedAt = po.ApprovedAt,
-            Items = po.Items.Select(i => {
-                var received = receivedQtys.FirstOrDefault(r => r.ProductId == i.ProductId)?.TotalReceived ?? 0;
-                return new PurchaseOrderItemDto
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity, // Đây là số lượng đặt (Ordered Qty)
-                    ReceivedQuantity = received, // Số lượng đã về kho (CẦN THÊM PROPERTY NÀY VÀO DTO)
-                    Price = i.Price,
-                    CreatedAt = i.CreatedAt,
-                    UpdatedAt = i.UpdatedAt
-                };
-            }).ToList()
-        };
-    }
     public async Task<PurchaseOrderDto> GetPOM0Async(Guid poId)
     {
         // 1. Lấy thông tin PO và Items
@@ -552,16 +625,54 @@ public class PurchaseService : IPurchaseService
         }).ToList()
     };
 
-    private static GoodsReceiptDto MapGRToDto(GoodsReceipt gr) => new()
+    private static GoodsReceiptDto MapGRToDto(GoodsReceipt gr)
+    {
+        return gr.ReceiptType switch
+        {
+            ReceiptType.Purchase => MapPurchaseGRToDto(gr),
+            ReceiptType.Production => MapProductionGRToDto(gr),
+            _ => throw new Exception($"ReceiptType không hợp lệ: {gr.ReceiptType}")
+        };
+    }
+
+
+    private static GoodsReceiptDto MapProductionGRToDto(GoodsReceipt gr) => new()
+    {
+        Id = gr.Id,
+        Code = gr.Code,
+        PurchaseOrderId = gr.PurchaseOrderId, // thường NULL với Production
+        WarehouseId = gr.WarehouseId,
+        ReceiptType = gr.ReceiptType,
+        Status = gr.Status,
+        CreatedAt = gr.CreatedAt,
+        UpdatedAt = gr.UpdatedAt,
+
+        ProductionReceiptItems = gr.Productions.Select(p => new ProductionReceiptItemDto
+        {
+            Id = p.Id,
+            GoodsReceiptId = p.GoodsReceiptId,
+            ProductId = p.ProductId,
+            Quantity = p.Quantity,
+            Receipt_Qty = p.Receipt_Qty,
+            Status = p.Status,
+            CreatedAt = p.CreatedAt,
+            UpdatedAt = p.UpdatedAt
+        }).ToList()
+    };
+    private static GoodsReceiptDto MapPurchaseGRToDto(GoodsReceipt gr) => new()
     {
         Id = gr.Id,
         Code = gr.Code,
         PurchaseOrderId = gr.PurchaseOrderId,
         WarehouseId = gr.WarehouseId,
+        ReceiptType = gr.ReceiptType,
         Status = gr.Status,
         CreatedAt = gr.CreatedAt,
         UpdatedAt = gr.UpdatedAt,
-        Items = gr.Items.Select(i => new GoodsReceiptItemDto
+
+        Items = gr.Items == null
+        ? new List<GoodsReceiptItemDto>()
+        : gr.Items.Select(i => new GoodsReceiptItemDto
         {
             Id = i.Id,
             ProductId = i.ProductId,
@@ -572,6 +683,8 @@ public class PurchaseService : IPurchaseService
             UpdatedAt = i.UpdatedAt
         }).ToList()
     };
+
+
 }
 
 // ========================

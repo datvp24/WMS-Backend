@@ -22,6 +22,14 @@ public class WarehousesController : ControllerBase
         var res = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = res.Id }, res);
     }
+    [HttpPost("warehousebytype")]
+    [HasPermission("warehouse.view")]
+    public async Task<IActionResult> getwarehousebytype([FromBody] WarehousesbyTypeDto dto)
+    {
+        var warehouselist = _service.GetByWarehouseType(dto);
+        return Ok(warehouselist);
+    }
+
     [HttpGet("warehousebyid")]
     [HasPermission("warehouse.view")]
     public async Task<IActionResult> GetWarehouseByProduct([FromBody] WarehousesbyProduct dto)

@@ -57,6 +57,7 @@ builder.Services.AddCors(opt =>
 
 var app = builder.Build();
 
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -73,8 +74,12 @@ app.MapControllers();
 //{
 //    builder.Run(async context =>
 //    {
-//        var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+//        var feature = context.Features.Get<IExceptionHandlerFeature>();
+//        var error = feature?.Error;
 
+//        context.Response.ContentType = "application/json";
+
+//        // ✅ Lỗi nghiệp vụ
 //        if (error is BusinessException be)
 //        {
 //            context.Response.StatusCode = StatusCodes.Status400BadRequest;
@@ -86,13 +91,33 @@ app.MapControllers();
 //            return;
 //        }
 
-//        context.Response.StatusCode = 500;
-//        await context.Response.WriteAsJsonAsync(new
+//        // ✅ Lỗi hệ thống (fallback)
+//        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+//        var env = context.RequestServices.GetRequiredService<IHostEnvironment>();
+
+//        if (env.IsDevelopment())
 //        {
-//            message = "Lỗi hệ thống, vui lòng thử lại"
-//        });
+//            // DEV: trả lỗi gốc để debug
+//            await context.Response.WriteAsJsonAsync(new
+//            {
+//                code = "SYSTEM_ERROR",
+//                message = error?.Message,
+//                stackTrace = error?.StackTrace
+//            });
+//        }
+//        else
+//        {
+//            // PROD: che chi tiết
+//            await context.Response.WriteAsJsonAsync(new
+//            {
+//                code = "SYSTEM_ERROR",
+//                message = "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau."
+//            });
+//        }
 //    });
 //});
+
 
 // 3. Run Auth Seeders (Role, Permission, Admin)
 using (var scope = app.Services.CreateScope())

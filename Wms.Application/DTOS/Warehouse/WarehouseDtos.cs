@@ -24,6 +24,10 @@ namespace Wms.Application.DTOS.Warehouse
     {
         public int ProductId {  get; set; }
     }
+    public class WarehousesbyTypeDto
+    {
+        public WarehouseType warehousetype { get; set; }
+    }
     public class WarehouseUpdateDto
     {
         [Required]

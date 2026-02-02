@@ -11,10 +11,9 @@ namespace Wms.Domain.Entity.Sales
         public Guid GoodsIssueId { get; set; }
         public GoodsIssue GoodsIssue { get; set; } = null!;
 
-        public Guid SOIId { get; set; }
+        public Guid? SOIId { get; set; }
 
-        [ForeignKey(nameof(SOIId))]
-        public SalesOrderItem SalesOrderItem { get; set; } = null!;
+        public SalesOrderItem? SalesOrderItem { get; set; } = null!;
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;
         public GIStatus Status { get; set; }
@@ -22,9 +21,9 @@ namespace Wms.Domain.Entity.Sales
         public Location Location { get; set; }
 
         public int Quantity { get; set; }
-        public int Issued_Qty { get; set; }
+        public int Issued_Qty { get; set; } = 0;
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public ICollection<GoodsIssueAllocate> Allocations { get; set; } = new List<GoodsIssueAllocate>();
 
     }

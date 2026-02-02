@@ -168,6 +168,7 @@ public class GoodsIssueDetailDto
     public Guid Id { get; set; }
     public string Code { get; set; } = null!;
     public string SalesOrderCode { get; set; } = null!;
+    public GIType Type { get; set; }
     public string WarehouseName { get; set; } = null!;
     public int Status { get; set; } // GIStatus enum as int
     public List<GoodsIssueItemDtoForFrontend> Items { get; set; } = new();

@@ -74,8 +74,6 @@ namespace Wms.Infrastructure.Persistence.Configurations.Purchase
                    .IsRequired()
                    .HasMaxLength(50);
 
-            builder.Property(x => x.PurchaseOrderId)
-                   .IsRequired();
 
             builder.Property(x => x.WarehouseId)
                    .IsRequired();

@@ -6,6 +6,7 @@ using Wms.Api.Middlewares; // <-- import HasPermission
 using Wms.Application.DTOS.Sales;
 using Wms.Application.Interfaces.Service.Sales;
 using Wms.Application.Interfaces.Services.Sales;
+using Wms.Domain.Entity.Sales;
 
 namespace Wms.Api.Controllers
 {
@@ -81,6 +82,24 @@ namespace Wms.Api.Controllers
         {
                 await _salesOrderService.OutgoingStockCount(dto);
                 return Ok(new { Message = "Issued successfully" });
+        }
+        [HttpPost("production")]
+        public async Task<IActionResult> CreateProductionGI(
+        [FromBody] ProductionGoodsIssueCreateDto dto)
+        {
+            var gi = await _salesOrderService.CreateProductionGIAsync(dto);
+            return Ok(gi);
+        }
+
+
+        /// <summary>
+        /// Duyệt phiếu xuất kho (Sale / Production)
+        /// </summary>
+        [HttpPost("GI/{giId}/approve")]
+        public async Task<ActionResult<GoodsIssueDto>> ApproveGI(Guid giId)
+        {
+            var result = await _salesOrderService.ApproveGIAsync(giId);
+            return Ok(result);
         }
         [HttpPost("picking")]
         [HasPermission("salesorder.picking")]

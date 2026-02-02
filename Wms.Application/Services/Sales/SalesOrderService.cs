@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.Configuration.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Wms.Application.DTOS.Sales;
 using Wms.Application.DTOS.Sales;
@@ -9,6 +10,7 @@ using Wms.Application.Interfaces.Services.Inventory;
 using Wms.Application.Interfaces.Services.Warehouse;
 using Wms.Application.Services.Inventorys;
 using Wms.Domain.Entity.Inventorys;
+using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Entity.Sales;
 using Wms.Domain.Entity.Warehouses;
 using Wms.Domain.Enums.Inventory;
@@ -40,6 +42,24 @@ namespace Wms.Domain.Service.Sales
 
         public async Task<SalesOrderDto> CreateSOAsync(SalesOrderDto dto)
         {
+            foreach (var item in dto.Items)
+            {
+                var product = await _dbContext.Products
+                    .FirstOrDefaultAsync(p => p.Id == item.ProductId);
+
+                if (product == null)
+                    throw new BusinessException(
+                        "PRODUCT_NOT_FOUND",
+                        $"Sản phẩm \"{item.ProductId}\" không tồn tại"
+                    );
+
+                if (product.Type != ProductType.Production)
+                    throw new BusinessException(
+                        "INVALID_PRODUCT_TYPE",
+                        $"Sản phẩm \"{product.Name}\" không phải là thành phẩm nên không thể bán"
+                    );
+            }
+
             var so = new SalesOrder
             {
                 Id = Guid.NewGuid(),  // Tạo Id mới cho SO
@@ -110,6 +130,7 @@ namespace Wms.Domain.Service.Sales
                     Id = g.Id,
                     Code = g.Code,
                     SalesOrderCode = g.SalesOrder.Code,
+                    Type = g.Type,
                     WarehouseName = g.Warehouse.Name,
                     Status = (int)g.Status,
                     Items = g.Items.Select(i => new GoodsIssueItemDtoForFrontend
@@ -231,6 +252,181 @@ namespace Wms.Domain.Service.Sales
 
         #region Approve / Reject
 
+        public async Task<GoodsIssueDto> CreateProductionGIAsync(
+    ProductionGoodsIssueCreateDto dto)
+        {
+            var warehouse = await _dbContext.Warehouses
+                .FirstOrDefaultAsync(w => w.Id == dto.WarehouseId);
+
+            if (warehouse == null)
+                throw new Exception("Kho không tồn tại");
+
+            if (warehouse.WarehouseType != WarehouseType.RawMaterial)
+                throw new Exception("Xuất sản xuất chỉ dùng kho nguyên liệu");
+
+            var gi = new GoodsIssue
+            {
+                Id = Guid.NewGuid(),
+                Code = GenerateGICode(),
+                Type = GIType.Production,
+                WarehouseId = dto.WarehouseId,
+                Status = GIStatus.Pending,
+                CreateAt = DateTime.UtcNow,
+                Items = dto.Items.Select(i => new GoodsIssueItem
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    Issued_Qty = 0,
+                    Status = GIStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList()
+            };
+
+            _dbContext.GoodsIssues.Add(gi);
+            await _dbContext.SaveChangesAsync();
+
+            // ✅ MAP SANG DTO
+            return _mapper.Map<GoodsIssueDto>(gi);
+        }
+
+
+        public async Task<GoodsIssueDto> ApproveGIAsync(Guid giId)
+        {
+            // =====================================================
+            // 1️⃣ Atomic approve (chống double click / double request)
+            // =====================================================
+            var affected = await _dbContext.GoodsIssues
+                .Where(x => x.Id == giId && x.Status == GIStatus.Pending)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.Status, GIStatus.Approve)
+                    .SetProperty(x => x.UpdateAt, DateTime.UtcNow)
+                );
+
+            if (affected == 0)
+                throw new Exception("GoodsIssue đã được approve hoặc không tồn tại");
+
+            // =====================================================
+            // 2️⃣ Load lại GI ở trạng thái KHÔNG TRACK
+            //    => EF KHÔNG generate UPDATE ngoài ý muốn
+            // =====================================================
+            var gi = await _dbContext.GoodsIssues
+                .AsNoTracking()
+                .Include(x => x.Items)
+                .Include(x => x.Warehouse)
+                .FirstAsync(x => x.Id == giId);
+
+            // =====================================================
+            // 3️⃣ Validate nghiệp vụ
+            // =====================================================
+            if (gi.Type == GIType.Production &&
+                gi.Warehouse.WarehouseType != WarehouseType.RawMaterial)
+            {
+                throw new Exception("Chỉ được xuất sản xuất từ kho nguyên liệu");
+            }
+
+            // =====================================================
+            // 4️⃣ Allocate (IDEMPOTENT – gọi 2 lần cũng không sao)
+            // =====================================================
+            foreach (var item in gi.Items)
+            {
+                // Nếu đã có allocation thì skip
+                var existed = await _dbContext.goodsIssueAllocates
+                    .AnyAsync(a => a.GoodsIssueItemId == item.Id);
+
+                if (existed)
+                    continue;
+
+                decimal remainingQty = item.Quantity;
+
+                var locations = await _inventoryService.GetAvailableLocations(
+                    item.ProductId,
+                    gi.WarehouseId
+                );
+
+                foreach (var loc in locations)
+                {
+                    if (remainingQty <= 0)
+                        break;
+
+                    var allocQty = Math.Min(remainingQty, loc.AvailableQty);
+
+                    _dbContext.goodsIssueAllocates.Add(new GoodsIssueAllocate
+                    {
+                        Id = Guid.NewGuid(),
+                        GoodsIssueItemId = item.Id,
+                        LocationId = loc.Id,
+                        AllocatedQty = allocQty,
+                        PickedQty = 0,
+                        Status = GIAStatus.Planned
+                    });
+
+                    remainingQty -= allocQty;
+                }
+
+                // Không đủ tồn → allocate thiếu
+                if (remainingQty > 0)
+                {
+                    _dbContext.goodsIssueAllocates.Add(new GoodsIssueAllocate
+                    {
+                        Id = Guid.NewGuid(),
+                        GoodsIssueItemId = item.Id,
+                        LocationId = null,
+                        AllocatedQty = remainingQty,
+                        PickedQty = 0,
+                        Status = GIAStatus.Planned
+                    });
+                }
+            }
+
+            // =====================================================
+            // 5️⃣ SaveChanges – CHỈ INSERT => KHÔNG CONCURRENCY
+            // =====================================================
+            await _dbContext.SaveChangesAsync();
+
+            return MapToDto(gi);
+        }
+        private static GoodsIssueDto MapToDto(GoodsIssue gi)
+        {
+            return new GoodsIssueDto
+            {
+                Id = gi.Id,
+                Code = gi.Code,
+                SalesOrderId = gi.SalesOrderId,
+                Type = gi.Type,
+                WarehouseId = gi.WarehouseId,
+                Status = gi.Status,
+                CreatedAt = gi.CreateAt,
+                UpdatedAt = gi.UpdateAt,
+                IssuedAt = gi.IssuedAt,
+
+                Items = gi.Items.Select(item => new GoodsIssueItemDto
+                {
+                    Id = item.Id,
+                    GoodsIssueId = item.GoodsIssueId,
+                    ProductId = item.ProductId,
+                    SalesOrderItemId = item.SOIId,
+                    LocationId = item.LocationId,
+                    Quantity = item.Quantity,
+                    IssuedQty = item.Issued_Qty,
+                    Status = item.Status,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+
+                    Allocations = item.Allocations.Select(a => new GoodsIssueAllocateDto
+                    {
+                        Id = a.Id,
+                        GoodsIssueItemId = a.GoodsIssueItemId,
+                        LocationId = a.LocationId ?? Guid.Empty,
+                        AllocatedQty = a.AllocatedQty,
+                        PickedQty = a.PickedQty,
+                        Status = a.Status
+                    }).ToList()
+
+                }).ToList()
+            };
+        }
+
         public async Task<SalesOrderDto> ApproveSOAsync(Guid soId)
         {
             var entity = await _dbContext.SalesOrders
@@ -267,6 +463,7 @@ namespace Wms.Domain.Service.Sales
                     Id = Guid.NewGuid(),
                     SalesOrderId = entity.Id,
                     Code = GenerateGICode(),
+                    Type = GIType.Sale,
                     WarehouseId = warehouseId,
                     Status = GIStatus.Pending,
                     CreateAt = DateTime.UtcNow,
@@ -365,12 +562,12 @@ namespace Wms.Domain.Service.Sales
 
 
                     // Chuẩn bị danh sách ID để load một lần
-                    var allocateIds = dto.Items.Select(x => x.Id).ToList();
+                    var allocateIds = dto.Allocations.Select(x => x.Id).ToList();
                     var allAllocates = await _dbContext.goodsIssueAllocates
                         .Where(a => allocateIds.Contains(a.Id))
                         .ToListAsync();
 
-                    foreach (var itemDto in dto.Items)
+                    foreach (var itemDto in dto.Allocations)
                     {
                         var gia = allAllocates.FirstOrDefault(a => a.Id == itemDto.Id);
                         if (gia == null) continue;
@@ -493,24 +690,26 @@ namespace Wms.Domain.Service.Sales
                     gi.IssuedAt = DateTime.UtcNow;
 
                     // 6. Cập nhật SalesOrderItem (Dòng trong đơn hàng gốc)
-                    var soi = await _dbContext.SalesOrderItems
+                    if(gi.Type == GIType.Sale)
+                    {
+                        var soi = await _dbContext.SalesOrderItems
                         .FirstOrDefaultAsync(s => s.Id == gii.SOIId);
 
-                    if (soi != null)
-                    {
-                        soi.Issued_Qty += dto.IssuedQty;
-                        soi.Status = soi.Issued_Qty >= soi.Quantity
-                            ? SOStatus.Complete
-                            : SOStatus.Partically_Issued;
-
-                        // 7. Cập nhật SalesOrder (Đơn hàng gốc)
-                        var isSoComplete = !await _dbContext.SalesOrderItems
-                            .AnyAsync(s => s.SalesOrderId == soi.SalesOrderId && s.Status != SOStatus.Complete);
-
-                        var so = await _dbContext.SalesOrders.FirstOrDefaultAsync(s => s.Id == soi.SalesOrderId);
-                        if (so != null)
+                        if (soi != null)
                         {
-                            so.Status = isSoComplete ? SOStatus.Complete : SOStatus.Partically_Issued;
+                            soi.Issued_Qty += dto.IssuedQty;
+                            soi.Status = soi.Issued_Qty >= soi.Quantity
+                                ? SOStatus.Complete
+                                : SOStatus.Partically_Issued;
+
+                            var isSoComplete = !await _dbContext.SalesOrderItems
+                                .AnyAsync(s => s.SalesOrderId == soi.SalesOrderId && s.Status != SOStatus.Complete);
+
+                            var so = await _dbContext.SalesOrders.FirstOrDefaultAsync(s => s.Id == soi.SalesOrderId);
+                            if (so != null)
+                            {
+                                so.Status = isSoComplete ? SOStatus.Complete : SOStatus.Partically_Issued;
+                            }
                         }
                     }
 
@@ -520,11 +719,41 @@ namespace Wms.Domain.Service.Sales
                 catch (Exception ex)
                 {
                     await tx.RollbackAsync();
-                    // Log lỗi ở đây nếu cần
                     throw;
                 }
             });
         }
+
+        public async Task<GoodsIssue> CreateGIAsync(GoodsIssueDto dto)
+        {
+            var warehousecheck = await _dbContext.Warehouses.FirstOrDefaultAsync(s => s.Id == dto.WarehouseId);
+            if (warehousecheck.WarehouseType != WarehouseType.RawMaterial)
+                throw new Exception("Không thể xuất kho không thuộc loại vật liệu");
+            var GI = new GoodsIssue
+            {
+                Id = dto.Id,
+                Code = GenerateGICode(),
+                SalesOrderId = dto.SalesOrderId,
+                Type = GIType.Production,
+                Status = dto.Status,
+                CreateAt = DateTime.UtcNow,
+                Items = dto.Items.Select(i => new GoodsIssueItem
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    Issued_Qty = 0,
+                    GoodsIssueId= dto.Id,
+                    Status = GIStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                }).ToList()
+            };
+            _dbContext.GoodsIssues.Add(GI);
+            await _dbContext.SaveChangesAsync();
+
+            return GI;
+        }
+       
 
         private string GenerateGICode()
         {

@@ -12,7 +12,7 @@ using Wms.Infrastructure.Persistence.Context;
 namespace Wms.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260124152957_init1013")]
+    [Migration("20260129150928_init1013")]
     partial class init1013
     {
         /// <inheritdoc />
@@ -561,7 +561,6 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<Guid?>("PurchaseOrderId")
-                        .IsRequired()
                         .HasColumnType("char(36)");
 
                     b.Property<int>("ReceiptType")
@@ -759,10 +758,13 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("SalesOrderId")
+                    b.Property<Guid?>("SalesOrderId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdateAt")
@@ -837,13 +839,16 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("SOIId")
+                    b.Property<Guid?>("SOIId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("SalesOrderItemId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
@@ -854,7 +859,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("SOIId");
+                    b.HasIndex("SalesOrderItemId");
 
                     b.ToTable("GoodsIssueItems", (string)null);
                 });
@@ -1342,8 +1347,7 @@ namespace Wms.Infrastructure.Migrations
                     b.HasOne("Wms.Domain.Entity.Purchase.PurchaseOrder", "PurchaseOrder")
                         .WithMany("GoodsReceipts")
                         .HasForeignKey("PurchaseOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("PurchaseOrder");
                 });
@@ -1405,8 +1409,7 @@ namespace Wms.Infrastructure.Migrations
                     b.HasOne("Wms.Domain.Entity.Sales.SalesOrder", "SalesOrder")
                         .WithMany("GoodsIssues")
                         .HasForeignKey("SalesOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", "Warehouse")
                         .WithMany()
@@ -1457,9 +1460,7 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasOne("Wms.Domain.Entity.Sales.SalesOrderItem", "SalesOrderItem")
                         .WithMany()
-                        .HasForeignKey("SOIId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SalesOrderItemId");
 
                     b.Navigation("GoodsIssue");
 

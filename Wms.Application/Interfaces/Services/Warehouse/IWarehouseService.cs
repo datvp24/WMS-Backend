@@ -28,5 +28,6 @@ namespace Wms.Application.Interfaces.Services.Warehouse
         Task<bool> DeleteLocationAsync(Guid id);
         Task<IEnumerable<LocationDto>> GetLocationsByWarehouseAsync(Guid warehouseId);
         Task<LocationDto> GetLocationByIdAsync(Guid id);
+        Task<List<Wms.Domain.Entity.Warehouses.Warehouse>> GetByWarehouseType(WarehousesbyTypeDto dto);
     }
 }

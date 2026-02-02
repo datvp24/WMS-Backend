@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Wms.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class init1011 : Migration
+    public partial class init1013 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -490,7 +490,8 @@ namespace Wms.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    SalesOrderId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    SalesOrderId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    Type = table.Column<int>(type: "int", nullable: false),
                     Code = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     WarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -524,8 +525,9 @@ namespace Wms.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Code = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PurchaseOrderId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    PurchaseOrderId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     WarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ReceiptType = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     ReceivedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -621,7 +623,7 @@ namespace Wms.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     WarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    LocationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    LocationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     OnHandQuantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     LockedQuantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
@@ -659,7 +661,7 @@ namespace Wms.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     WarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    LocationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    LocationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     QuantityChange = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     Note = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
@@ -676,8 +678,7 @@ namespace Wms.Infrastructure.Migrations
                         name: "FK_InventoryHistories_Locations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Locations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_InventoryHistories_Products_ProductId",
                         column: x => x.ProductId,
@@ -800,19 +801,45 @@ namespace Wms.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ProductionReceiptItems",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    GoodsReceiptId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Receipt_Qty = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductionReceiptItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductionReceiptItems_GoodsReceipts_GoodsReceiptId",
+                        column: x => x.GoodsReceiptId,
+                        principalTable: "GoodsReceipts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "GoodsIssueItems",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     GoodsIssueId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    SOIId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    SOIId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    SalesOrderItemId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     LocationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     Issued_Qty = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -836,11 +863,10 @@ namespace Wms.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GoodsIssueItems_SalesOrderItems_SOIId",
-                        column: x => x.SOIId,
+                        name: "FK_GoodsIssueItems_SalesOrderItems_SalesOrderItemId",
+                        column: x => x.SalesOrderItemId,
                         principalTable: "SalesOrderItems",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -850,7 +876,7 @@ namespace Wms.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     GoodsIssueItemId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    LocationId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    LocationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     AllocatedQty = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     PickedQty = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false)
@@ -868,8 +894,7 @@ namespace Wms.Infrastructure.Migrations
                         name: "FK_goodsIssueAllocates_Locations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Locations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -935,9 +960,9 @@ namespace Wms.Infrastructure.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GoodsIssueItems_SOIId",
+                name: "IX_GoodsIssueItems_SalesOrderItemId",
                 table: "GoodsIssueItems",
-                column: "SOIId");
+                column: "SalesOrderItemId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GoodsIssues_Code",
@@ -1017,6 +1042,11 @@ namespace Wms.Infrastructure.Migrations
                 table: "Permissions",
                 column: "Code",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductionReceiptItems_GoodsReceiptId",
+                table: "ProductionReceiptItems",
+                column: "GoodsReceiptId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_BrandId",
@@ -1217,6 +1247,9 @@ namespace Wms.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "InventoryHistories");
+
+            migrationBuilder.DropTable(
+                name: "ProductionReceiptItems");
 
             migrationBuilder.DropTable(
                 name: "PurchaseOrderItems");
