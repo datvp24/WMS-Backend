@@ -12,7 +12,7 @@ using Wms.Infrastructure.Persistence.Context;
 namespace Wms.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260129150928_init1013")]
+    [Migration("20260206102405_init1013")]
     partial class init1013
     {
         /// <inheritdoc />
@@ -258,6 +258,9 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<decimal>("LockedQuantity")
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<Guid>("LotId")
+                        .HasColumnType("char(36)");
+
                     b.Property<decimal>("OnHandQuantity")
                         .HasColumnType("decimal(18,4)");
 
@@ -274,14 +277,44 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasIndex("LocationId");
 
+                    b.HasIndex("LotId");
+
                     b.HasIndex("ProductId");
 
                     b.HasIndex("WarehouseId");
 
-                    b.HasIndex("WarehouseId", "LocationId")
-                        .IsUnique();
+                    b.HasIndex("WarehouseId", "LocationId", "ProductId", "LotId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Inventories_WarehouseId_LocationId_ProductId_LotId");
 
                     b.ToTable("Inventories", (string)null);
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Inventorys.Lot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ManufacturingDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("productId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lots");
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.MasterData.Brand", b =>
@@ -754,9 +787,7 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("IssuedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<Guid?>("SalesOrderId")
                         .HasColumnType("char(36)");
@@ -798,6 +829,9 @@ namespace Wms.Infrastructure.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<Guid?>("LocationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("LotId")
                         .HasColumnType("char(36)");
 
                     b.Property<decimal>("PickedQty")
@@ -1292,6 +1326,12 @@ namespace Wms.Infrastructure.Migrations
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Wms.Domain.Entity.Inventorys.Lot", "Lot")
+                        .WithMany()
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Wms.Domain.Entity.MasterData.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
@@ -1303,6 +1343,8 @@ namespace Wms.Infrastructure.Migrations
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Lot");
 
                     b.Navigation("Product");
                 });

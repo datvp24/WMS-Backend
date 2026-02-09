@@ -12,6 +12,9 @@ namespace Wms.Application.DTOs.Inventorys
         public Guid WarehouseId { get; set; }
         public string WarehouseName { get; set; } // Thêm mới
         public Guid? LocationId { get; set; }
+        public Guid LotId { get; set; }
+        public string LotCode { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public string LocationCode { get; set; }  // Thêm mới
         public int ProductId { get; set; }
         public string ProductName { get; set; }   // Thêm mới
@@ -80,6 +83,7 @@ namespace Wms.Application.DTOs.Inventorys
     {
         public Guid? WarehouseId { get; set; }
         public Guid? LocationId { get; set; }
+        public string? LotCode { get; set; } // THÊM DÒNG NÀY
         public int? ProductId { get; set; }
         public List<int>? ProductIds { get; set; } // mở rộng query nhiều sản phẩm
     }

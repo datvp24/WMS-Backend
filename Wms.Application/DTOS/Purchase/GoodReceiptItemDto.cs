@@ -15,6 +15,8 @@ public class GoodsReceiptItemDto
 public class GoodsReceiptItem1Dto
 {
     public Guid Id { get; set; }
+    public DateTime ExpiryDate { get; set; }
+    public string LotCode { get; set; }
     public int ProductId { get; set; }
     public int Quantity { get; set; }
     public int Received_Qty { get; set; }

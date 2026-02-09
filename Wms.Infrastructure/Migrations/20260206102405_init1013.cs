@@ -81,6 +81,24 @@ namespace Wms.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Lots",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Code = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    productId = table.Column<int>(type: "int", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ManufacturingDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Lots", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Permissions",
                 columns: table => new
                 {
@@ -496,7 +514,7 @@ namespace Wms.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     WarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    IssuedAt = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    IssuedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdateAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
@@ -624,6 +642,7 @@ namespace Wms.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     WarehouseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     LocationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    LotId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     OnHandQuantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     LockedQuantity = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
@@ -640,6 +659,12 @@ namespace Wms.Infrastructure.Migrations
                         principalTable: "Locations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Inventories_Lots_LotId",
+                        column: x => x.LotId,
+                        principalTable: "Lots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Inventories_Products_ProductId",
                         column: x => x.ProductId,
@@ -877,6 +902,7 @@ namespace Wms.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     GoodsIssueItemId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     LocationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    LotId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     AllocatedQty = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     PickedQty = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false)
@@ -996,6 +1022,11 @@ namespace Wms.Infrastructure.Migrations
                 column: "LocationId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Inventories_LotId",
+                table: "Inventories",
+                column: "LotId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Inventories_ProductId",
                 table: "Inventories",
                 column: "ProductId");
@@ -1006,9 +1037,9 @@ namespace Wms.Infrastructure.Migrations
                 column: "WarehouseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inventories_WarehouseId_LocationId",
+                name: "IX_Inventories_WarehouseId_LocationId_ProductId_LotId",
                 table: "Inventories",
-                columns: new[] { "WarehouseId", "LocationId" },
+                columns: new[] { "WarehouseId", "LocationId", "ProductId", "LotId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1271,6 +1302,9 @@ namespace Wms.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "GoodsIssueItems");
+
+            migrationBuilder.DropTable(
+                name: "Lots");
 
             migrationBuilder.DropTable(
                 name: "GoodsReceipts");

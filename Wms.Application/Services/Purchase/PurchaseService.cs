@@ -258,6 +258,7 @@ public class PurchaseService : IPurchaseService
                 Productions = dto.ProductionReceiptItems.Select(i => new ProductionReceiptItem
                 {
                     Id = Guid.NewGuid(),
+                    
                     ProductId = i.ProductId,
                     Quantity = i.Quantity,
                     Receipt_Qty = i.Receipt_Qty,
@@ -346,11 +347,14 @@ public class PurchaseService : IPurchaseService
                     : GRIStatus.Partial;
 
                 await _inventoryService.AdjustAsync(
-                    dto.WarehouseId,
-                    location,
-                    item.ProductId,
-                    item.Receipt_Qty,
-                    InventoryActionType.Receive
+                 dto.WarehouseId,
+                 location,
+                 item.ProductId,
+                 item.Receipt_Qty,
+                 InventoryActionType.Receive,
+                 refCode: gr.Code,           // Mã phiếu nhập sản xuất
+                 lotCode: item.LotCode,      // <--- Thêm từ DTO
+                 expiryDate: item.ExpiryDate // <--- Thêm từ DTO
                 );
             }
 
@@ -403,6 +407,10 @@ public class PurchaseService : IPurchaseService
                 // 2️⃣ Update PO Item + Inventory
                 var poi = await _db.PurchaseOrderItems
                     .FirstOrDefaultAsync(p => p.Id == item.POIid);
+                var gr = await _db.GoodsReceipts
+    .Include(p => p.Items)
+    .FirstOrDefaultAsync(s => s.Id == item.GoodsReceiptId);
+
 
                 if (poi != null)
                 {
@@ -417,18 +425,18 @@ public class PurchaseService : IPurchaseService
                         .GetReceivingLocationId(poi.WarehouseId);
 
                     await _inventoryService.AdjustAsync(
-                        poi.WarehouseId,
-                        locationId,
-                        item.ProductId,
-                        dto.Received_Qty,
-                        InventoryActionType.Receive
-                    );
+            poi.WarehouseId,
+            locationId,
+            item.ProductId,
+            dto.Received_Qty,
+            InventoryActionType.Receive,
+            refCode: gr.Code, // Truyền mã phiếu nhập để làm lịch sử
+            lotCode: dto.LotCode,   // <--- Mới
+            expiryDate: dto.ExpiryDate // <--- Mới
+        );
                 }
 
                 // 3️⃣ Update GR status [có thể tách thành hàm riêng để dễ tái sử dụng]
-                var gr = await _db.GoodsReceipts
-                    .Include(p => p.Items)
-                    .FirstOrDefaultAsync(s => s.Id == item.GoodsReceiptId);
 
                 if (gr != null)
                 {

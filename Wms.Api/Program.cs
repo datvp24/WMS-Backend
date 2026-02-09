@@ -70,53 +70,53 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-//app.UseExceptionHandler(builder =>
-//{
-//    builder.Run(async context =>
-//    {
-//        var feature = context.Features.Get<IExceptionHandlerFeature>();
-//        var error = feature?.Error;
+app.UseExceptionHandler(builder =>
+{
+    builder.Run(async context =>
+    {
+        var feature = context.Features.Get<IExceptionHandlerFeature>();
+        var error = feature?.Error;
 
-//        context.Response.ContentType = "application/json";
+        context.Response.ContentType = "application/json";
 
-//        // ✅ Lỗi nghiệp vụ
-//        if (error is BusinessException be)
-//        {
-//            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-//            await context.Response.WriteAsJsonAsync(new
-//            {
-//                code = be.Code,
-//                message = be.Message
-//            });
-//            return;
-//        }
+        // ✅ Lỗi nghiệp vụ
+        if (error is BusinessException be)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                code = be.Code,
+                message = be.Message
+            });
+            return;
+        }
 
-//        // ✅ Lỗi hệ thống (fallback)
-//        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        // ✅ Lỗi hệ thống (fallback)
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-//        var env = context.RequestServices.GetRequiredService<IHostEnvironment>();
+        var env = context.RequestServices.GetRequiredService<IHostEnvironment>();
 
-//        if (env.IsDevelopment())
-//        {
-//            // DEV: trả lỗi gốc để debug
-//            await context.Response.WriteAsJsonAsync(new
-//            {
-//                code = "SYSTEM_ERROR",
-//                message = error?.Message,
-//                stackTrace = error?.StackTrace
-//            });
-//        }
-//        else
-//        {
-//            // PROD: che chi tiết
-//            await context.Response.WriteAsJsonAsync(new
-//            {
-//                code = "SYSTEM_ERROR",
-//                message = "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau."
-//            });
-//        }
-//    });
-//});
+        if (env.IsDevelopment())
+        {
+            // DEV: trả lỗi gốc để debug
+            await context.Response.WriteAsJsonAsync(new
+            {
+                code = "SYSTEM_ERROR",
+                message = error?.Message,
+                stackTrace = error?.StackTrace
+            });
+        }
+        else
+        {
+            // PROD: che chi tiết
+            await context.Response.WriteAsJsonAsync(new
+            {
+                code = "SYSTEM_ERROR",
+                message = "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau."
+            });
+        }
+    });
+});
 
 
 // 3. Run Auth Seeders (Role, Permission, Admin)

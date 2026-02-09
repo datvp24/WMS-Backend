@@ -36,9 +36,10 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
                .HasColumnType("datetime")
                .IsRequired(false);
 
-        // Unique constraint: mỗi Product + Warehouse + Location chỉ có 1 record
-        builder.HasIndex(x => new { x.WarehouseId, x.LocationId })
-               .IsUnique();
+        // Tìm đoạn cấu hình Index cho Inventory và sửa thành:
+        builder.HasIndex(i => new { i.WarehouseId, i.LocationId, i.ProductId, i.LotId })
+               .IsUnique()
+               .HasDatabaseName("IX_Inventories_WarehouseId_LocationId_ProductId_LotId");
 
         // Index để query nhanh
         builder.HasIndex(x => x.ProductId);

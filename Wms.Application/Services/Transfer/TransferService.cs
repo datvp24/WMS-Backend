@@ -125,7 +125,7 @@ public class TransferService : ITransferService
                         warehouseId: transfer.ToWarehouseId,
                         locationId: item.ToLocationId,
                         productId: item.ProductId,
-                        qtyChange: item.Quantity,
+                        qty: item.Quantity,
                         actionType: InventoryActionType.TransferIn,
                         refCode: transfer.Code
                     );

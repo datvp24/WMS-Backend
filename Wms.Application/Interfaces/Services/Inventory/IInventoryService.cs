@@ -42,24 +42,26 @@ namespace Wms.Application.Interfaces.Services.Inventory
             string? note = null
         );
         Task AdjustAsync(
-            Guid warehouseId,
-            Guid locationId,
-            int productId,
-            decimal qtyChange,
-            InventoryActionType actionType,
-            string? refCode = null,
-            string? note = null
-        );
+     Guid warehouseId,
+     Guid locationId,
+     int productId,
+     decimal qty,
+     InventoryActionType actionType,
+     string? refCode = null,
+     string? lotCode = null,   // Dùng cho Nhập kho (Mua/Sản xuất)
+     Guid? lotId = null,       // Dùng cho Xuất kho/Picking
+     DateTime? expiryDate = null,
+     string? note = null);
 
         Task AdjustPickingAsync(
-            Guid warehouseId,
-            Guid? locationId,
-            int productId,
-            decimal qtyChange,
-            InventoryActionType actionType,
-            string? refCode = null,
-            string? note = null
-        );
+       Guid warehouseId,
+       Guid? locationId,
+       int productId,
+       decimal qty,
+       InventoryActionType actionType,
+       string? refCode,
+       Guid lotId, // <--- THÊM THAM SỐ LOTID
+       string? note = null);
 
         // =========================
         // LOCK / UNLOCK STOCK

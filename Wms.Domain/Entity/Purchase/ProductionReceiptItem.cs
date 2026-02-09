@@ -15,6 +15,7 @@ namespace Wms.Domain.Entity.Purchase
         public int Quantity { get; set; }
         public int Receipt_Qty { get; set; }
         public GRIStatus Status { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set;}
         public GoodsReceipt GoodsReceipt { get; set; }

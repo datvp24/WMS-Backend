@@ -578,8 +578,15 @@ namespace Wms.Domain.Service.Sales
                         gia.Status = GIAStatus.Picked;
 
                         // 2. TRỪ kho tại Kệ và CỘNG vào Cổng xuất
-                            await _inventoryService.AdjustPickingAsync(gi.WarehouseId, gia.LocationId, dto.ProductId, actualPicked, InventoryActionType.AdjustDecrease);
-                            await _inventoryService.AdjustAsync(gi.WarehouseId, issued1Location.Id, dto.ProductId, actualPicked, InventoryActionType.AdjustIncrease);
+                        await _inventoryService.AdjustPickingAsync(
+                            gi.WarehouseId,      // 1
+                            gia.LocationId,      // 2
+                            dto.ProductId,       // 3
+                            actualPicked,        // 4
+                            InventoryActionType.AdjustDecrease, // 5
+                            gi.Code,             // 6: refCode (Phải là string)
+                            gia.LotId            // 7: lotId (Phải là Guid)
+                        ); await _inventoryService.AdjustAsync(gi.WarehouseId, issued1Location.Id, dto.ProductId, actualPicked, InventoryActionType.AdjustIncrease);
                         // 3. Xử lý thiếu hàng (Re-allocate)
                         if (actualPicked < gia.AllocatedQty)
                         {
@@ -632,7 +639,6 @@ namespace Wms.Domain.Service.Sales
         }
         public async Task OutgoingStockCount(IssueGoodsDto dto)
         {
-            // Tạo chiến lược thực thi để hỗ trợ cơ chế Retry của MySQL
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
             await strategy.ExecuteAsync(async () =>
@@ -640,60 +646,83 @@ namespace Wms.Domain.Service.Sales
                 using var tx = await _dbContext.Database.BeginTransactionAsync();
                 try
                 {
-                    // 1. Lấy dữ liệu và kiểm tra cơ bản
+                    // 1. Lấy dữ liệu Item và kiểm tra cơ bản
                     var gii = await _dbContext.GoodsIssueItems
                         .FirstOrDefaultAsync(x => x.Id == dto.GoodsIssueItemId);
 
-                    if (gii == null) throw new Exception("GoodsIssueItem not found");
-                    if (dto.IssuedQty <= 0) throw new Exception("Issued quantity must be greater than zero");
+                    if (gii == null) throw new Exception("Không tìm thấy dòng hàng xuất kho.");
+                    if (dto.IssuedQty <= 0) throw new Exception("Số lượng xuất phải lớn hơn 0.");
 
-                    // Kiểm tra số lượng yêu cầu của phiếu xuất
+                    // Kiểm tra tổng số lượng đã xuất so với yêu cầu
                     if (gii.Issued_Qty + dto.IssuedQty > gii.Quantity)
-                        throw new Exception("Issued quantity exceeds required quantity");
+                        throw new Exception("Tổng số lượng xuất vượt quá số lượng yêu cầu trên phiếu.");
 
-                    // 2. Kiểm tra số lượng đã Pick (đã lấy ra khỏi kệ để sẵn ở cổng xuất)
-                    var totalPicked = await _dbContext.goodsIssueAllocates
-                        .Where(x => x.GoodsIssueItemId == gii.Id)
-                        .SumAsync(x => x.PickedQty);
+                    // 2. Lấy danh sách các lô hàng đã được Pick (đang nằm ở cổng xuất)
+                    var pickedAllocates = await _dbContext.goodsIssueAllocates
+                        .Where(x => x.GoodsIssueItemId == gii.Id && x.Status == GIAStatus.Picked)
+                        .OrderBy(x => x.LotId) // Sắp xếp để trừ có thứ tự
+                        .ToListAsync();
 
-                    if (dto.IssuedQty > totalPicked - gii.Issued_Qty)
-                        throw new Exception("Số lượng xuất vượt quá số lượng đã Picking thực tế.");
+                    // Tính số lượng thực tế đang nằm chờ ở cổng xuất (Picked - Đã xuất trước đó)
+                    decimal totalCurrentlyAtGate = pickedAllocates.Sum(x => x.PickedQty) - gii.Issued_Qty;
 
-                    // 3. Cập nhật số lượng và trạng thái của GoodsIssueItem
+                    if (dto.IssuedQty > totalCurrentlyAtGate)
+                        throw new Exception("Số lượng xuất vượt quá số lượng hàng đang có sẵn tại cổng xuất (Số lượng đã Picking).");
+
+                    // 3. Lấy thông tin phiếu xuất và vị trí xuất
+                    var gi = await _dbContext.GoodsIssues
+                        .FirstOrDefaultAsync(x => x.Id == gii.GoodsIssueId);
+
+                    var issueLocation = await _warehouse.GetIssuedLocationId(gi.WarehouseId);
+                    if (issueLocation == null)
+                        throw new Exception("Kho chưa cấu hình vị trí xuất hàng (Issue Location).");
+
+                    // 4. TRỪ TỒN KHO TẠI CỔNG XUẤT THEO TỪNG LÔ (LOT)
+                    decimal qtyRemainingToIssue = dto.IssuedQty;
+
+                    foreach (var alloc in pickedAllocates)
+                    {
+                        if (qtyRemainingToIssue <= 0) break;
+
+                        // Xác định số lượng còn lại trong lô này tại cổng xuất có thể trừ
+                        // (Lưu ý: Nếu một lô được pick nhiều lần, cần logic trừ chính xác hơn, 
+                        // nhưng ở đây giả định trừ dần theo danh sách pickedAllocates)
+                        decimal availableInThisAlloc = alloc.PickedQty;
+
+                        decimal takeFromThisLot = Math.Min(qtyRemainingToIssue, availableInThisAlloc);
+                        if (takeFromThisLot <= 0) continue;
+
+                        await _inventoryService.AdjustAsync(
+                            gi.WarehouseId,
+                            issueLocation.Id,
+                            gii.ProductId,
+                            takeFromThisLot,
+                            InventoryActionType.Issue,
+                            refCode: gi.Code,
+                            lotId: alloc.LotId // <--- TRỪ ĐÚNG LOTID ĐÃ PICK
+                        );
+
+                        qtyRemainingToIssue -= takeFromThisLot;
+                    }
+
+                    // 5. Cập nhật số lượng và trạng thái của GoodsIssueItem
                     gii.Issued_Qty += dto.IssuedQty;
                     gii.Status = gii.Issued_Qty >= gii.Quantity
                         ? GIStatus.Complete
                         : GIStatus.Partically_Issued;
 
-                    // 4. Trừ tồn kho tại Cổng Xuất (Issue Location)
-                    var gi = await _dbContext.GoodsIssues
-                        .FirstOrDefaultAsync(x => x.Id == gii.GoodsIssueId);
-
-                    var issueLocation = await _warehouse.GetIssuedLocationId(gi.WarehouseId);
-
-                    if (issueLocation == null) throw new Exception("Không tìm thấy vị trí xuất hàng (Issue Location) cho kho này.");
-
-                    await _inventoryService.AdjustAsync(
-                        gi.WarehouseId,
-                        issueLocation.Id,
-                        gii.ProductId,
-                        dto.IssuedQty, // QUAN TRỌNG: Chỉ trừ số lượng của đợt này
-                        InventoryActionType.Issue
-                    );
-
-                    // 5. Cập nhật trạng thái của GoodsIssue (Phiếu xuất)
-                    // Kiểm tra xem còn Item nào chưa hoàn thành không
+                    // 6. Cập nhật trạng thái của GoodsIssue (Phiếu xuất)
                     var isGiComplete = !await _dbContext.GoodsIssueItems
                         .AnyAsync(x => x.GoodsIssueId == gi.Id && x.Status != GIStatus.Complete);
 
                     gi.Status = isGiComplete ? GIStatus.Complete : GIStatus.Partically_Issued;
                     gi.IssuedAt = DateTime.UtcNow;
 
-                    // 6. Cập nhật SalesOrderItem (Dòng trong đơn hàng gốc)
-                    if(gi.Type == GIType.Sale)
+                    // 7. Cập nhật SalesOrderItem (Nếu là đơn bán hàng)
+                    if (gi.Type == GIType.Sale)
                     {
                         var soi = await _dbContext.SalesOrderItems
-                        .FirstOrDefaultAsync(s => s.Id == gii.SOIId);
+                            .FirstOrDefaultAsync(s => s.Id == gii.SOIId);
 
                         if (soi != null)
                         {
@@ -702,12 +731,12 @@ namespace Wms.Domain.Service.Sales
                                 ? SOStatus.Complete
                                 : SOStatus.Partically_Issued;
 
-                            var isSoComplete = !await _dbContext.SalesOrderItems
-                                .AnyAsync(s => s.SalesOrderId == soi.SalesOrderId && s.Status != SOStatus.Complete);
-
                             var so = await _dbContext.SalesOrders.FirstOrDefaultAsync(s => s.Id == soi.SalesOrderId);
                             if (so != null)
                             {
+                                var isSoComplete = !await _dbContext.SalesOrderItems
+                                    .AnyAsync(s => s.SalesOrderId == so.Id && s.Status != SOStatus.Complete);
+
                                 so.Status = isSoComplete ? SOStatus.Complete : SOStatus.Partically_Issued;
                             }
                         }
@@ -716,14 +745,13 @@ namespace Wms.Domain.Service.Sales
                     await _dbContext.SaveChangesAsync();
                     await tx.CommitAsync();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await tx.RollbackAsync();
                     throw;
                 }
             });
         }
-
         public async Task<GoodsIssue> CreateGIAsync(GoodsIssueDto dto)
         {
             var warehousecheck = await _dbContext.Warehouses.FirstOrDefaultAsync(s => s.Id == dto.WarehouseId);

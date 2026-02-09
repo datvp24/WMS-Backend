@@ -140,9 +140,14 @@ namespace Wms.Application.Services.Inventorys
 
         public async Task<List<InventoryDto>> QueryAsync(InventoryQueryDto dto)
         {
-            var query = _db.Inventories.AsNoTracking().AsQueryable();
+            // Sử dụng .AsNoTracking() để tăng tốc độ truy vấn chỉ đọc
+            var query = _db.Inventories
+                .Include(x => x.Product)  // Load thông tin sản phẩm
+                .Include(x => x.Lot)      // Load thông tin Lô hàng (MỚI)
+                .AsNoTracking()
+                .AsQueryable();
 
-            // --- Giữ nguyên các phần filter của bạn ---
+            // --- Filter logic ---
             if (dto.WarehouseId.HasValue)
                 query = query.Where(x => x.WarehouseId == dto.WarehouseId);
 
@@ -154,21 +159,24 @@ namespace Wms.Application.Services.Inventorys
 
             if (dto.ProductIds != null && dto.ProductIds.Any())
                 query = query.Where(x => dto.ProductIds.Contains(x.ProductId));
-            // ------------------------------------------
+
+            // Thêm filter theo LotCode nếu cần
+            if (!string.IsNullOrEmpty(dto.LotCode))
+                query = query.Where(x => x.Lot.Code.Contains(dto.LotCode));
+            // --------------------
 
             return await query
                 .Select(inv => new InventoryDto
                 {
                     Id = inv.Id,
                     WarehouseId = inv.WarehouseId,
-                    // Lấy tên kho từ bảng Warehouse
+                    // Sử dụng Navigation property giúp SQL sinh ra câu lệnh JOIN chuẩn, nhanh hơn
                     WarehouseName = _db.Warehouses
                         .Where(w => w.Id == inv.WarehouseId)
                         .Select(w => w.Name)
                         .FirstOrDefault(),
 
                     LocationId = inv.LocationId,
-                    // Lấy mã vị trí và Type từ bảng Location
                     LocationCode = _db.Locations
                         .Where(l => l.Id == inv.LocationId)
                         .Select(l => l.Code)
@@ -179,23 +187,22 @@ namespace Wms.Application.Services.Inventorys
                         .FirstOrDefault(),
 
                     ProductId = inv.ProductId,
-                    // Lấy tên và mã SP từ bảng Product
-                    ProductName = _db.Products
-                        .Where(p => p.Id == inv.ProductId)
-                        .Select(p => p.Name)
-                        .FirstOrDefault(),
-                    ProductCode = _db.Products
-                        .Where(p => p.Id == inv.ProductId)
-                        .Select(p => p.Code)
-                        .FirstOrDefault(),
+                    ProductName = inv.Product.Name,
+                    ProductCode = inv.Product.Code,
+
+                    // --- THÔNG TIN LÔ HÀNG (MỚI) ---
+                    LotId = inv.LotId,
+                    LotCode = inv.Lot.Code,
+                    ExpiryDate = inv.Lot.ExpiryDate,
+                    // ------------------------------
 
                     OnHandQuantity = inv.OnHandQuantity,
                     LockedQuantity = inv.LockedQuantity,
-                    InTransitQuantity = inv.InTransitQuantity
+                    InTransitQuantity = inv.InTransitQuantity,
+                    // Tính toán số lượng khả dụng ngay tại query
                 })
                 .ToListAsync();
         }
-
         // =========================
         // INVENTORY HISTORY
         // =========================
@@ -221,73 +228,79 @@ namespace Wms.Application.Services.Inventorys
         // ADJUST INVENTORY
         // =========================
         public async Task AdjustAsync(
-            Guid warehouseId,
-            Guid locationId,
-            int productId,
-            decimal qty,
-            InventoryActionType actionType,
-            string? refCode,
-            string? note = null)
+     Guid warehouseId,
+     Guid locationId,
+     int productId,
+     decimal qty,
+     InventoryActionType actionType,
+     string? refCode = null,
+     string? lotCode = null,   // Dùng cho Nhập kho (Mua/Sản xuất)
+     Guid? lotId = null,       // Dùng cho Xuất kho/Picking
+     DateTime? expiryDate = null,
+     string note = null)
         {
-            // 1. Validate đầu vào
-            if (qty <= 0)
-                throw new Exception("Quantity must be greater than zero");
+            if (qty <= 0) throw new Exception("Số lượng phải lớn hơn 0");
 
-            // 2. Xác định dấu (+ / -) dựa trên ActionType
-            decimal signedQty = actionType switch
+            // 1. XÁC ĐỊNH LOT ID
+            Guid finalLotId;
+            if (lotId.HasValue)
             {
-                // === TĂNG TỒN ===
-                InventoryActionType.Receive => qty,           // nhập kho
-                InventoryActionType.TransferIn => qty,        // chuyển đến location
-                InventoryActionType.AdjustIncrease => qty,    // điều chỉnh tăng
-                InventoryActionType.StockTakeAdjustment => qty,
+                finalLotId = lotId.Value;
+            }
+            else
+            {
+                // Logic cho Nhập kho: Tìm theo LotCode, không có thì tạo
+                string code = string.IsNullOrEmpty(lotCode) ? "NOSERIAL" : lotCode;
+                var lot = await _db.Lots.FirstOrDefaultAsync(x => x.productId == productId && x.Code == code);
+                if (lot == null)
+                {
+                    lot = new Lot
+                    {
+                        Id = Guid.NewGuid(),
+                        productId = productId,
+                        Code = code,
+                        ExpiryDate = expiryDate,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _db.Lots.Add(lot);
+                    await _db.SaveChangesAsync(); // Lưu để có Lot trong DB
+                }
+                finalLotId = lot.Id;
+            }
 
-                // === GIẢM TỒN ===
-                InventoryActionType.Issue => -qty,             // xuất kho
-                InventoryActionType.TransferOut => -qty,       // chuyển đi location
-                InventoryActionType.AdjustDecrease => -qty,    // điều chỉnh giảm
-                InventoryActionType.StockCount => -qty,
+            // 2. TÍNH TOÁN DẤU
+            decimal signedQty = (actionType == InventoryActionType.Receive ||
+                                 actionType == InventoryActionType.AdjustIncrease ||
+                                 actionType == InventoryActionType.TransferIn) ? qty : -qty;
 
-                // === KHÔNG HỖ TRỢ ===
-                _ => throw new Exception($"Unsupported inventory action: {actionType}")
-            };
-
-            // 3. Lấy inventory theo warehouse + location + product
+            // 3. CẬP NHẬT BẢNG INVENTORY (Bộ 3: Location + Product + Lot)
             var inv = await _db.Inventories.FirstOrDefaultAsync(x =>
-                x.WarehouseId == warehouseId &&
-                x.LocationId == locationId &&
-                x.ProductId == productId
-            );
+                x.WarehouseId == warehouseId && x.LocationId == locationId &&
+                x.ProductId == productId && x.LotId == finalLotId);
 
-            // 4. Nếu chưa có inventory thì tạo mới
             if (inv == null)
             {
+                if (signedQty < 0) throw new Exception("Không tìm thấy tồn kho để trừ.");
                 inv = new Inventory
                 {
                     Id = Guid.NewGuid(),
                     WarehouseId = warehouseId,
                     LocationId = locationId,
                     ProductId = productId,
+                    LotId = finalLotId,
                     OnHandQuantity = 0,
-                    LockedQuantity = 0,
-                    InTransitQuantity = 0,
                     CreatedAt = DateTime.UtcNow
                 };
                 _db.Inventories.Add(inv);
             }
 
-            // 5. Validate không cho âm tồn
-            // Chỉ validate âm tồn khi chúng ta đang thực hiện hành động GIẢM (signedQty < 0)
             if (signedQty < 0 && (inv.OnHandQuantity + signedQty < 0))
-            {
-                throw new Exception($"Không đủ hàng để trừ. Hiện có: {inv.OnHandQuantity}, yêu cầu trừ: {Math.Abs(signedQty)} và {inv.Id}, và {inv.LocationId}, và {inv.ProductId}, và {inv.WarehouseId}");
-            }
+                throw new Exception($"Lô hàng này tại vị trí này không đủ tồn kho (Còn: {inv.OnHandQuantity})");
 
-            // 6. Update tồn kho
             inv.OnHandQuantity += signedQty;
             inv.UpdatedAt = DateTime.UtcNow;
 
-            // 7. Ghi lịch sử inventory
+            // 4. GHI LỊCH SỬ (Truy vết theo Lô)
             _db.InventoryHistories.Add(new InventoryHistory
             {
                 Id = Guid.NewGuid(),
@@ -297,53 +310,41 @@ namespace Wms.Application.Services.Inventorys
                 QuantityChange = signedQty,
                 ActionType = actionType,
                 ReferenceCode = refCode,
-                Note = note,
                 CreatedAt = DateTime.UtcNow
             });
 
-            // 8. Commit
             await _db.SaveChangesAsync();
         }
         public async Task AdjustPickingAsync(
-            Guid warehouseId,
-            Guid? locationId,
-            int productId,
-            decimal qty,
-            InventoryActionType actionType,
-            string? refCode,
-            string? note = null)
+     Guid warehouseId,
+     Guid? locationId,
+     int productId,
+     decimal qty,
+     InventoryActionType actionType,
+     string? refCode,
+     Guid lotId, // <--- THÊM THAM SỐ LOTID
+     string? note = null)
         {
-            // 1. Validate đầu vào
-            if (qty <= 0)
-                throw new Exception("Quantity must be greater than zero");
+            if (qty <= 0) throw new Exception("Quantity > 0");
 
-            // 2. Xác định dấu (+ / -) dựa trên ActionType
             decimal signedQty = actionType switch
             {
-                // === TĂNG TỒN ===
-                InventoryActionType.Receive => qty,           // nhập kho
-                InventoryActionType.TransferIn => qty,        // chuyển đến location
-                InventoryActionType.AdjustIncrease => qty,    // điều chỉnh tăng
-                InventoryActionType.StockTakeAdjustment => qty,
-
-                // === GIẢM TỒN ===
-                InventoryActionType.Issue => -qty,             // xuất kho
-                InventoryActionType.TransferOut => -qty,       // chuyển đi location
-                InventoryActionType.AdjustDecrease => -qty,    // điều chỉnh giảm
-                InventoryActionType.StockCount => -qty,
-
-                // === KHÔNG HỖ TRỢ ===
-                _ => throw new Exception($"Unsupported inventory action: {actionType}")
+                InventoryActionType.AdjustIncrease => qty,
+                InventoryActionType.AdjustDecrease => -qty,
+                _ => throw new Exception("Unsupported action")
             };
 
-            // 3. Lấy inventory theo warehouse + location + product
+            // TÌM THEO BỘ 3: Location + Product + LotId
             var inv = await _db.Inventories.FirstOrDefaultAsync(x =>
                 x.WarehouseId == warehouseId &&
                 x.LocationId == locationId &&
-                x.ProductId == productId
+                x.ProductId == productId &&
+                x.LotId == lotId // <--- QUAN TRỌNG NHẤT
             );
 
-            // 4. Nếu chưa có inventory thì tạo mới
+            if (inv == null && signedQty < 0)
+                throw new Exception($"Không tìm thấy dòng tồn kho cho Lô này tại vị trí chỉ định.");
+
             if (inv == null)
             {
                 inv = new Inventory
@@ -352,26 +353,19 @@ namespace Wms.Application.Services.Inventorys
                     WarehouseId = warehouseId,
                     LocationId = locationId,
                     ProductId = productId,
+                    LotId = lotId,
                     OnHandQuantity = 0,
-                    LockedQuantity = 0,
-                    InTransitQuantity = 0,
                     CreatedAt = DateTime.UtcNow
                 };
                 _db.Inventories.Add(inv);
             }
 
-            // 5. Validate không cho âm tồn
-            // Chỉ validate âm tồn khi chúng ta đang thực hiện hành động GIẢM (signedQty < 0)
             if (signedQty < 0 && (inv.OnHandQuantity + signedQty < 0))
-            {
-                throw new Exception($"Không đủ hàng để trừ. Hiện có: {inv.OnHandQuantity}, yêu cầu trừ: {Math.Abs(signedQty)} và {inv.Id}, và {inv.LocationId}, và {inv.ProductId}, và {inv.WarehouseId}");
-            }
+                throw new Exception("Âm tồn kho cho Lô này!");
 
-            // 6. Update tồn kho
             inv.OnHandQuantity += signedQty;
             inv.UpdatedAt = DateTime.UtcNow;
 
-            // 7. Ghi lịch sử inventory
             _db.InventoryHistories.Add(new InventoryHistory
             {
                 Id = Guid.NewGuid(),
@@ -381,11 +375,9 @@ namespace Wms.Application.Services.Inventorys
                 QuantityChange = signedQty,
                 ActionType = actionType,
                 ReferenceCode = refCode,
-                Note = note,
                 CreatedAt = DateTime.UtcNow
             });
 
-            // 8. Commit
             await _db.SaveChangesAsync();
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Wms.Domain.Entity.Inventorys;
 using Wms.Domain.Entity.Sales;
 
 namespace Wms.Application.DTOS.Sales
@@ -36,6 +37,7 @@ namespace Wms.Application.DTOS.Sales
 
         public int Quantity { get; set; }
         public int IssuedQty { get; set; }
+        public Guid LotId { get; set; }
 
         public GIStatus Status { get; set; }
 

@@ -12,6 +12,8 @@ public class Inventory
 
     public Guid WarehouseId { get; set; }
     public Guid? LocationId { get; set; }
+    public Guid LotId { get; set; }
+    public Lot Lot { get; set; }
     public int ProductId { get; set; }
     public Product Product {get;set;}
 
