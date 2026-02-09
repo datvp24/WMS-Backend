@@ -1,4 +1,5 @@
 ﻿using Wms.Domain.Enums.Inventory;
+namespace Wms.Domain.Entity.Inventorys;
 
 public class InventoryHistory
 {

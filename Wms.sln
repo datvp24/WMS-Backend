@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36616.10 d17.14
+VisualStudioVersion = 17.14.36616.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wms.Api", "Wms.Api\Wms.Api.csproj", "{1EAD2ED8-36FA-4C11-9A3E-483F842FA70C}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wms.Infrastructure", "Wms.Infrastructure\Wms.Infrastructure.csproj", "{B08AA623-BE9E-468D-AFEE-02A8F45CC960}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wms.Shared", "Wms.Shared\Wms.Shared.csproj", "{6CC2C6AC-AA35-4D6E-A7DA-BECAFF154021}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wms.test", "wms.test\wms.test.csproj", "{C1738A91-06E6-4D9A-94A0-193153ECE372}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{6CC2C6AC-AA35-4D6E-A7DA-BECAFF154021}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CC2C6AC-AA35-4D6E-A7DA-BECAFF154021}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CC2C6AC-AA35-4D6E-A7DA-BECAFF154021}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1738A91-06E6-4D9A-94A0-193153ECE372}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1738A91-06E6-4D9A-94A0-193153ECE372}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1738A91-06E6-4D9A-94A0-193153ECE372}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1738A91-06E6-4D9A-94A0-193153ECE372}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

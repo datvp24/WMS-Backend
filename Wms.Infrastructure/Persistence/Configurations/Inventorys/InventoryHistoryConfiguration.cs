@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Entity.Warehouses;
-
+using Wms.Domain.Entity.Inventorys;
 public class InventoryHistoryConfiguration : IEntityTypeConfiguration<InventoryHistory>
 {
     public void Configure(EntityTypeBuilder<InventoryHistory> builder)
