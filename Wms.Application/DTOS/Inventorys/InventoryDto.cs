@@ -39,10 +39,22 @@ namespace Wms.Application.DTOs.Inventorys
     public class PutawayDto
     {
         public int ProductId { get; set; }      // Sản phẩm cần putaway
+        public Guid LotId { get; set; }
+
         public Guid FromLocationId { get; set; } // Thường là Receiving location
         public Guid ToLocationId { get; set; }   // Storage location
         public Guid WarehouseId { get; set; }
         public decimal Qty { get; set; }         // Số lượng putaway
+    }
+    public class LocationStockDto
+    {
+        public Guid Id { get; set; }
+        public string LocationCode { get; set; }
+        public LocationType Type { get; set; }
+
+        public decimal OnHandQty { get; set; }
+        public decimal LockedQty { get; set; }
+        public decimal AvailableQty => OnHandQty - LockedQty;
     }
 
 

@@ -15,6 +15,18 @@ namespace Wms.Application.Interfaces.Services.Inventory
 
         public Task<List<InventoryDto>> GetByWarehouseAsync(Guid warehouseId)
             => QueryAsync(new InventoryQueryDto { WarehouseId = warehouseId });
+        Task<List<LocationStockDto>> GetAvailableLocationsByLot(
+    int productId,
+    Guid warehouseId,
+    Guid lotId);
+ Task AdjustPickingAsync(
+    Guid warehouseId,
+    Guid locationId,
+    int productId,
+    decimal qty,
+    InventoryActionType actionType,
+    string refCode,
+    Guid lotId);
         Task<List<InventoryDto>> GetInventoryByProductType(ProductType1Dto dto);
         public Task<List<InventoryDto>> GetByLocationAsync(Guid locationId)
             => QueryAsync(new InventoryQueryDto { LocationId = locationId });
@@ -41,27 +53,18 @@ namespace Wms.Application.Interfaces.Services.Inventory
             string? refCode = null,
             string? note = null
         );
-        Task AdjustAsync(
-     Guid warehouseId,
-     Guid locationId,
-     int productId,
-     decimal qty,
-     InventoryActionType actionType,
-     string? refCode = null,
-     string? lotCode = null,   // Dùng cho Nhập kho (Mua/Sản xuất)
-     Guid? lotId = null,       // Dùng cho Xuất kho/Picking
-     DateTime? expiryDate = null,
-     string? note = null);
-
-        Task AdjustPickingAsync(
-       Guid warehouseId,
-       Guid? locationId,
-       int productId,
-       decimal qty,
-       InventoryActionType actionType,
-       string? refCode,
-       Guid lotId, // <--- THÊM THAM SỐ LOTID
-       string? note = null);
+Task AdjustAsync(
+                           Guid warehouseId,
+                           Guid locationId,
+                           int productId,
+                           decimal qty,
+                           InventoryActionType actionType,
+                           Guid? lotId = null,
+                           string? refCode = null,
+                           string? lotCode = null,
+                           DateTime? expiryDate = null,
+                           DateTime? manufacturingDate = null,   // ← thêm param
+                           string? note = null);
 
         // =========================
         // LOCK / UNLOCK STOCK

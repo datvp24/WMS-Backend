@@ -50,8 +50,10 @@ public class InventoryController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { Message = ex.Message });
+            var inner = ex.InnerException?.Message;
+            throw new Exception(inner ?? ex.Message);
         }
+
     }
     [HasPermission("inventory.view")]
     [HttpGet("available-locations")] // ⬅️ Đổi thành GET

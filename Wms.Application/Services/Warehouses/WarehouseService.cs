@@ -321,10 +321,20 @@ namespace Wms.Application.Services.Warehouses
         }
 
 
-        public async Task<IEnumerable<LocationDto>> GetLocationsByWarehouseAsync(Guid warehouseId)
+        public async Task<IEnumerable<LocationDto>> GetLocationsByWarehouseAsync(
+    Guid warehouseId,
+    LocationType? type)
         {
-            var items = await _db.Locations.Where(l => l.WarehouseId == warehouseId).ToListAsync();
-            return items.Select(Map);
+            var all = await _db.Locations.ToListAsync();
+
+            Console.WriteLine($"Total locations in DB: {all.Count}");
+            Console.WriteLine($"WarehouseId filter: {warehouseId}");
+
+            var filtered = all.Where(l => l.WarehouseId == warehouseId);
+
+            Console.WriteLine($"After warehouse filter: {filtered.Count()}");
+
+            return filtered.Select(Map);
         }
 
 

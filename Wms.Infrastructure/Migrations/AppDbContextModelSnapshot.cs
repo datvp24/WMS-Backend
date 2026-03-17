@@ -22,51 +22,6 @@ namespace Wms.Infrastructure.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("InventoryHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("ActionType")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid?>("LocationId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("QuantityChange")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.Property<string>("ReferenceCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<Guid>("WarehouseId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.ToTable("InventoryHistories", (string)null);
-                });
-
             modelBuilder.Entity("Wms.Domain.Entity.Auth.Permission", b =>
                 {
                     b.Property<int>("Id")
@@ -287,6 +242,51 @@ namespace Wms.Infrastructure.Migrations
                     b.ToTable("Inventories", (string)null);
                 });
 
+            modelBuilder.Entity("Wms.Domain.Entity.Inventorys.InventoryHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid?>("LocationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("QuantityChange")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("ReferenceCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("InventoryHistories", (string)null);
+                });
+
             modelBuilder.Entity("Wms.Domain.Entity.Inventorys.Lot", b =>
                 {
                     b.Property<Guid>("Id")
@@ -295,7 +295,8 @@ namespace Wms.Infrastructure.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -311,7 +312,14 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Lots");
+                    b.HasIndex("productId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Lot_Product_LotCode");
+
+                    b.HasIndex("productId", "ExpiryDate")
+                        .HasDatabaseName("IX_Lot_Product_ExpiryDate");
+
+                    b.ToTable("Lots", (string)null);
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.MasterData.Brand", b =>
@@ -661,8 +669,14 @@ namespace Wms.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<Guid>("GoodsReceiptId")
                         .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ManufacturingDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -1192,10 +1206,9 @@ namespace Wms.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.HasIndex("WarehouseId");
+                    b.HasIndex("WarehouseId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Location_Warehouse_Code");
 
                     b.ToTable("Locations", (string)null);
                 });
@@ -1238,25 +1251,6 @@ namespace Wms.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Warehouses", (string)null);
-                });
-
-            modelBuilder.Entity("InventoryHistory", b =>
-                {
-                    b.HasOne("Wms.Domain.Entity.Warehouses.Location", null)
-                        .WithMany()
-                        .HasForeignKey("LocationId");
-
-                    b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", null)
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.Auth.RolePermission", b =>
@@ -1344,6 +1338,25 @@ namespace Wms.Infrastructure.Migrations
                     b.Navigation("Lot");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Wms.Domain.Entity.Inventorys.InventoryHistory", b =>
+                {
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId");
+
+                    b.HasOne("Wms.Domain.Entity.MasterData.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Wms.Domain.Entity.Warehouses.Warehouse", null)
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Wms.Domain.Entity.MasterData.Product", b =>

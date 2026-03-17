@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Wms.Application.DTOS.Warehouse;
 using Wms.Domain.Entity.Warehouses;
+using Wms.Domain.Enums.location;
 
 
 namespace Wms.Application.Interfaces.Services.Warehouse
@@ -26,7 +27,7 @@ namespace Wms.Application.Interfaces.Services.Warehouse
         Task<Location> GetIssuedLocationId(Guid warehouseId);
 
         Task<bool> DeleteLocationAsync(Guid id);
-        Task<IEnumerable<LocationDto>> GetLocationsByWarehouseAsync(Guid warehouseId);
+        Task<IEnumerable<LocationDto>> GetLocationsByWarehouseAsync(Guid warehouseId, LocationType? type);
         Task<LocationDto> GetLocationByIdAsync(Guid id);
         Task<List<Wms.Domain.Entity.Warehouses.Warehouse>> GetByWarehouseType(WarehousesbyTypeDto dto);
     }

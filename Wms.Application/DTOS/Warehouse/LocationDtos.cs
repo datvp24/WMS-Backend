@@ -52,10 +52,15 @@ namespace Wms.Application.DTOS.Warehouse
         public Guid WarehouseId { get; set; }
         public LocationType Type { get; set; }
         public string Code { get; set; }
-        public decimal AvailableQty {  get; set; }
+        public decimal AvailableQty { get; set; }
         public string Description { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-    }
+
+        public Guid LotId { get; set; }
+        public string? LotCode { get; set; }
+        public DateTime? ExpiryDate { get; set; }  // ✅ THÊM
+        public DateTime? ManufacturingDate { get; set; }  // ✅ THÊM (optional)
+    }   
 }

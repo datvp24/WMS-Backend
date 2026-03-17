@@ -9,6 +9,7 @@ using Wms.Application.Interfaces.Services;
 using Wms.Application.Interfaces.Services.Inventory;
 using Wms.Application.Interfaces.Services.Purchase;
 using Wms.Application.Interfaces.Services.Warehouse;
+using Wms.Domain.Entity.Inventorys;
 using Wms.Domain.Entity.MasterData;
 using Wms.Domain.Entity.Purchase;
 using Wms.Domain.Entity.Warehouses;
@@ -21,7 +22,7 @@ namespace Wms.Application.Services.Purchase;
 public class PurchaseService : IPurchaseService
 {
     private readonly AppDbContext _db;
-    private readonly IInventoryService _inventoryService;   
+    private readonly IInventoryService _inventoryService;
     private readonly IJwtService _jwt;
     private readonly IWarehouseService _locationService;
 
@@ -34,25 +35,55 @@ public class PurchaseService : IPurchaseService
     }
 
     // ========================
-    // PURCHASE ORDER
+    // PRIVATE HELPERS
     // ========================
-    private string GenerateGRCode()
+
+    /// <summary>
+    /// Tự động sinh mã PO theo format: PO-YYYYMMDD-0001
+    /// </summary>
+    private string GeneratePOCode()
     {
-        // Lấy ngày hôm nay
-        var today = DateTime.UtcNow.Date; // chỉ YYYY-MM-DD
+        var today = DateTime.UtcNow.Date;
 
-        // Đếm số GR đã tạo trong ngày hôm nay
-        var countToday = _db.GoodsReceipts
-                            .Count(gr => gr.CreatedAt >= today && gr.CreatedAt < today.AddDays(1));
+        var countToday = _db.PurchaseOrders
+            .Count(po => po.CreatedAt >= today && po.CreatedAt < today.AddDays(1));
 
-        // Tăng số thứ tự 1
         var seq = countToday + 1;
 
-        // Format code: GR-YYYYMMDD-XXXX
-        var code = $"GR-{today:yyyyMMdd}-{seq:0000}";
-
-        return code;
+        return $"PO-{today:yyyyMMdd}-{seq:0000}";
     }
+
+    /// <summary>
+    /// Tự động sinh mã GR theo format: GR-YYYYMMDD-0001
+    /// </summary>
+    private string GenerateGRCode()
+    {
+        var today = DateTime.UtcNow.Date;
+
+        var countToday = _db.GoodsReceipts
+            .Count(gr => gr.CreatedAt >= today && gr.CreatedAt < today.AddDays(1));
+
+        var seq = countToday + 1;
+
+        return $"GR-{today:yyyyMMdd}-{seq:0000}";
+    }
+
+    /// <summary>
+    /// Tự động sinh LotCode từ ProductId và ngày + giờ nhập.
+    /// Format: LOT-{ProductId 6 chữ số}-{YYYYMMDD}-{HHmmss}
+    /// Ví dụ: LOT-000042-20260308-143022
+    /// Timestamp giây đảm bảo unique cho mỗi lần nhập trong ngày.
+    /// </summary>
+    private static string GenerateLotCode(int productId, DateTime date)
+    {
+        var productShort = productId.ToString("D6");
+        var timestamp = date.ToString("HHmmss");
+        return $"LOT-{productShort}-{date:yyyyMMdd}-{timestamp}";
+    }
+
+    // ========================
+    // PURCHASE ORDER
+    // ========================
 
     public async Task<PurchaseOrderDto> CreatePOAsync(PurchaseOrderDto dto)
     {
@@ -74,12 +105,10 @@ public class PurchaseService : IPurchaseService
                 );
         }
 
-
-        //THÊM CHECK WAREHOUSE TYPE
         var po = new PurchaseOrder
         {
             Id = Guid.NewGuid(),
-            Code = dto.Code,
+            Code = GeneratePOCode(),   // ← tự sinh, bỏ dto.Code
             SupplierId = dto.SupplierId,
             CreateBy = _jwt.GetUserId(),
             Status = "Pending",
@@ -104,9 +133,9 @@ public class PurchaseService : IPurchaseService
 
         return MapPOToDto(po);
     }
+
     public async Task<PurchaseOrderDto> ApprovePOAsync(Guid poId)
     {
-        // 1. Lấy PO
         var po = await _db.PurchaseOrders
                           .Include(x => x.Items)
                           .FirstOrDefaultAsync(x => x.Id == poId);
@@ -116,7 +145,6 @@ public class PurchaseService : IPurchaseService
         if (po.Status != "Pending")
             throw new InvalidOperationException("Only Pending PO can be approved");
 
-        // 2. Approve PO + POI
         po.Status = "Approve";
         po.ApprovedAt = DateTime.UtcNow;
         po.ApprovedBy = _jwt.GetUserId();
@@ -131,11 +159,9 @@ public class PurchaseService : IPurchaseService
             }
         }
 
-        // 3. Group POI theo Warehouse để tạo GR
         var groupedPOI = po.Items
                            .Where(i => i.Status == Status.Approve)
                            .GroupBy(i => i.WarehouseId);
-
 
         foreach (var group in groupedPOI)
         {
@@ -146,7 +172,7 @@ public class PurchaseService : IPurchaseService
                 Id = Guid.NewGuid(),
                 PurchaseOrderId = po.Id,
                 WarehouseId = warehouseId,
-                Code = GenerateGRCode(), // custom function
+                Code = GenerateGRCode(),
                 Status = Status.Pending,
                 ReceiptType = ReceiptType.Purchase,
                 CreatedAt = DateTime.UtcNow,
@@ -171,12 +197,10 @@ public class PurchaseService : IPurchaseService
             _db.GoodsReceipts.Add(gr);
         }
 
-        // 4. Save all
         await _db.SaveChangesAsync();
 
         return MapPOToDto(po);
     }
-
 
     public async Task<PurchaseOrderDto> RejectPOAsync(Guid poId)
     {
@@ -194,7 +218,7 @@ public class PurchaseService : IPurchaseService
 
         foreach (var item in po.Items)
         {
-            if (item.Status == Status.Pending) // chỉ reject POI chưa approved
+            if (item.Status == Status.Pending)
             {
                 item.Status = Status.Rejected;
                 item.UpdatedAt = DateTime.UtcNow;
@@ -204,7 +228,6 @@ public class PurchaseService : IPurchaseService
         await _db.SaveChangesAsync();
         return MapPOToDto(po);
     }
-
 
     // Không paging
     public async Task<List<PurchaseOrderDto>> GetPOsAsync()
@@ -231,6 +254,7 @@ public class PurchaseService : IPurchaseService
     // ========================
     // GOODS RECEIPT
     // ========================
+
     public async Task<GoodsReceiptDto> CreateGRAsync(GoodsReceiptDto dto)
     {
         if (dto.WarehouseId == Guid.Empty)
@@ -249,7 +273,7 @@ public class PurchaseService : IPurchaseService
             var gr = new GoodsReceipt
             {
                 Id = Guid.NewGuid(),
-                Code = dto.Code,
+                Code = GenerateGRCode(),   // ← tự sinh
                 PurchaseOrderId = dto.PurchaseOrderId,
                 ReceiptType = ReceiptType.Production,
                 WarehouseId = dto.WarehouseId,
@@ -258,7 +282,6 @@ public class PurchaseService : IPurchaseService
                 Productions = dto.ProductionReceiptItems.Select(i => new ProductionReceiptItem
                 {
                     Id = Guid.NewGuid(),
-                    
                     ProductId = i.ProductId,
                     Quantity = i.Quantity,
                     Receipt_Qty = i.Receipt_Qty,
@@ -269,17 +292,12 @@ public class PurchaseService : IPurchaseService
             };
 
             _db.GoodsReceipts.Add(gr);
-
-            // update inventory ở đây (cùng DbContext)
             await _db.SaveChangesAsync();
-
             await transaction.CommitAsync();
 
             return MapProductionGRToDto(gr);
         });
     }
-
-    // Hàm Approve cho productionGR
 
     public async Task<GoodsReceiptDto> ApproveProductionReceipt(GoodsReceiptDto dto)
     {
@@ -287,7 +305,8 @@ public class PurchaseService : IPurchaseService
         if (gr == null)
             throw new Exception("Đơn nhập không tồn tại");
         if (gr.Status == Status.Approve)
-            throw new Exception("Chỉ có thể chấp thuân(Approve) đơn nhập có trạng thái là đang xử lý(Pending)");
+            throw new Exception("Chỉ có thể chấp thuận (Approve) đơn nhập có trạng thái là đang xử lý (Pending)");
+
         var strategy = _db.Database.CreateExecutionStrategy();
         return await strategy.ExecuteAsync(async () =>
         {
@@ -300,11 +319,13 @@ public class PurchaseService : IPurchaseService
         });
     }
 
-    //Hàm couting cho ProductionGR
-
     public async Task<List<GoodsReceipt>> getGRbytype(GRByTypeDto dto)
     {
-        var GRlist = _db.GoodsReceipts.Include(s=> s.Items).Include(s=>s.Productions).Where(s=>s.ReceiptType == dto.ReceiptType).ToList();
+        var GRlist = _db.GoodsReceipts
+            .Include(s => s.Items)
+            .Include(s => s.Productions)
+            .Where(s => s.ReceiptType == dto.ReceiptType)
+            .ToList();
         return GRlist;
     }
 
@@ -327,6 +348,7 @@ public class PurchaseService : IPurchaseService
                 throw new Exception("Đơn nhập không hợp lệ để kiểm đếm");
 
             var location = await _locationService.GetReceivingLocationId(dto.WarehouseId);
+            var receivedAt = DateTime.UtcNow;
 
             foreach (var item in dto.ProductionReceiptItems)
             {
@@ -347,14 +369,15 @@ public class PurchaseService : IPurchaseService
                     : GRIStatus.Partial;
 
                 await _inventoryService.AdjustAsync(
-                 dto.WarehouseId,
-                 location,
-                 item.ProductId,
-                 item.Receipt_Qty,
-                 InventoryActionType.Receive,
-                 refCode: gr.Code,           // Mã phiếu nhập sản xuất
-                 lotCode: item.LotCode,      // <--- Thêm từ DTO
-                 expiryDate: item.ExpiryDate // <--- Thêm từ DTO
+                    dto.WarehouseId,
+                    location,
+                    item.ProductId,
+                    item.Receipt_Qty,
+                    InventoryActionType.Receive,
+                    refCode: gr.Code,
+                    lotCode: GenerateLotCode(item.ProductId, receivedAt),
+                    expiryDate: item.ExpiryDate,
+                    manufacturingDate: item.ManufacturingDate
                 );
             }
 
@@ -369,7 +392,6 @@ public class PurchaseService : IPurchaseService
             return MapProductionGRToDto(gr);
         });
     }
-
 
     // Không paging
     public async Task<List<GoodsReceiptDto>> GetGRsAsync(Guid? poId = null)
@@ -389,7 +411,8 @@ public class PurchaseService : IPurchaseService
             {
                 var item = await _db.GoodsReceiptItems
                     .FirstOrDefaultAsync(s => s.Id == dto.Id);
-                var product = await _db.Products.FirstOrDefaultAsync(s=> s.Id == dto.ProductId);
+
+                var product = await _db.Products.FirstOrDefaultAsync(s => s.Id == dto.ProductId);
                 if (product == null)
                     throw new Exception("Chỉ nhập kho những sản phẩm thuộc loại nguyên vật liệu");
 
@@ -400,17 +423,16 @@ public class PurchaseService : IPurchaseService
                 item.Received_Qty += dto.Received_Qty;
 
                 if (item.Received_Qty >= item.Quantity)
-                    item.Status = Domain.Enums.Purchase.GRIStatus.Complete;
+                    item.Status = GRIStatus.Complete;
                 else if (item.Received_Qty > 0)
-                    item.Status = Domain.Enums.Purchase.GRIStatus.Partial;
+                    item.Status = GRIStatus.Partial;
 
                 // 2️⃣ Update PO Item + Inventory
                 var poi = await _db.PurchaseOrderItems
                     .FirstOrDefaultAsync(p => p.Id == item.POIid);
                 var gr = await _db.GoodsReceipts
-    .Include(p => p.Items)
-    .FirstOrDefaultAsync(s => s.Id == item.GoodsReceiptId);
-
+                            .Include(p => p.Items)
+                            .FirstOrDefaultAsync(s => s.Id == item.GoodsReceiptId);
 
                 if (poi != null)
                 {
@@ -425,22 +447,22 @@ public class PurchaseService : IPurchaseService
                         .GetReceivingLocationId(poi.WarehouseId);
 
                     await _inventoryService.AdjustAsync(
-            poi.WarehouseId,
-            locationId,
-            item.ProductId,
-            dto.Received_Qty,
-            InventoryActionType.Receive,
-            refCode: gr.Code, // Truyền mã phiếu nhập để làm lịch sử
-            lotCode: dto.LotCode,   // <--- Mới
-            expiryDate: dto.ExpiryDate // <--- Mới
-        );
+                        poi.WarehouseId,
+                        locationId,
+                        item.ProductId,
+                        dto.Received_Qty,
+                        InventoryActionType.Receive,
+                        refCode: gr.Code,
+                        lotCode: GenerateLotCode(item.ProductId, DateTime.UtcNow),
+                        expiryDate: dto.ExpiryDate,
+                        manufacturingDate: dto.ManufacturingDate
+                    );
                 }
 
-                // 3️⃣ Update GR status [có thể tách thành hàm riêng để dễ tái sử dụng]
-
+                // 3️⃣ Update GR status
                 if (gr != null)
                 {
-                    gr.Status = gr.Items.All(i => i.Status == Domain.Enums.Purchase.GRIStatus.Complete)
+                    gr.Status = gr.Items.All(i => i.Status == GRIStatus.Complete)
                         ? Status.Complete
                         : Status.Partically_Received;
 
@@ -471,9 +493,9 @@ public class PurchaseService : IPurchaseService
 
     // Có paging
     public async Task<List<GoodsReceiptDto>> GetGRsAsync(
-    Guid? poId = null,
-    int page = 1,
-    int pageSize = 20)
+        Guid? poId = null,
+        int page = 1,
+        int pageSize = 20)
     {
         var query = _db.Set<GoodsReceipt>()
             .Include(x => x.Items)
@@ -494,26 +516,21 @@ public class PurchaseService : IPurchaseService
 
     public async Task<PurchaseOrderDto> GetPOM0Async(Guid poId)
     {
-        // 1. Lấy thông tin PO và Items
         var po = await _db.Set<PurchaseOrder>()
-                          .Include(x => x.Items.Where(i => i.Quantity !=0))
+                          .Include(x => x.Items.Where(i => i.Quantity != 0))
                           .FirstOrDefaultAsync(x => x.Id == poId);
-        
+
         if (po == null) throw new NotFoundException("PO not found");
 
-        // 2. Tính tổng số lượng đã nhận từ tất cả các GoodsReceipt liên quan đến PO này
-        // Truy vấn vào bảng GoodsReceiptItem (nơi lưu thực tế số lượng đã nhập)
         var receivedQtys = await _db.Set<GoodsReceiptItem>()
             .Where(x => x.GoodsReceipt.PurchaseOrderId == poId)
             .GroupBy(x => x.ProductId)
             .Select(g => new {
                 ProductId = g.Key,
                 Total = g.Sum(i => i.Quantity)
-
             })
             .ToListAsync();
 
-        // 3. Map sang DTO và gán con số thực tế vào
         var dto = new PurchaseOrderDto
         {
             Id = po.Id,
@@ -524,26 +541,23 @@ public class PurchaseService : IPurchaseService
             Items = po.Items.Select(i => new PurchaseOrderItemDto
             {
                 ProductId = i.ProductId,
-                Quantity = i.Quantity, // Đây là số lượng đặt (ví dụ 112)
+                Quantity = i.Quantity,
                 Price = i.Price,
-                // Gán số lượng đã nhận từ kết quả GroupBy ở trên
                 ReceivedQuantity = receivedQtys.FirstOrDefault(r => r.ProductId == i.ProductId)?.Total ?? 0
             }).ToList()
         };
 
         return dto;
     }
+
     public async Task<PurchaseOrderDto> GetPOAsync(Guid poId)
     {
-        // 1. Lấy thông tin PO và Items
         var po = await _db.Set<PurchaseOrder>()
                           .Include(x => x.Items)
                           .FirstOrDefaultAsync(x => x.Id == poId);
 
         if (po == null) throw new NotFoundException("PO not found");
 
-        // 2. Tính tổng số lượng đã nhận từ tất cả các GoodsReceipt liên quan đến PO này
-        // Truy vấn vào bảng GoodsReceiptItem (nơi lưu thực tế số lượng đã nhập)
         var receivedQtys = await _db.Set<GoodsReceiptItem>()
             .Where(x => x.GoodsReceipt.PurchaseOrderId == poId)
             .GroupBy(x => x.ProductId)
@@ -553,7 +567,6 @@ public class PurchaseService : IPurchaseService
             })
             .ToListAsync();
 
-        // 3. Map sang DTO và gán con số thực tế vào
         var dto = new PurchaseOrderDto
         {
             Id = po.Id,
@@ -564,15 +577,15 @@ public class PurchaseService : IPurchaseService
             Items = po.Items.Select(i => new PurchaseOrderItemDto
             {
                 ProductId = i.ProductId,
-                Quantity = i.Quantity, // Đây là số lượng đặt (ví dụ 112)
+                Quantity = i.Quantity,
                 Price = i.Price,
-                // Gán số lượng đã nhận từ kết quả GroupBy ở trên
                 ReceivedQuantity = receivedQtys.FirstOrDefault(r => r.ProductId == i.ProductId)?.Total ?? 0
             }).ToList()
         };
 
         return dto;
     }
+
     public async Task CancelGRAsync(Guid grId)
     {
         var gr = await _db.Set<GoodsReceipt>()
@@ -612,6 +625,7 @@ public class PurchaseService : IPurchaseService
     // ========================
     // Private mapping helpers
     // ========================
+
     private static PurchaseOrderDto MapPOToDto(PurchaseOrder po) => new()
     {
         Id = po.Id,
@@ -643,12 +657,11 @@ public class PurchaseService : IPurchaseService
         };
     }
 
-
     private static GoodsReceiptDto MapProductionGRToDto(GoodsReceipt gr) => new()
     {
         Id = gr.Id,
         Code = gr.Code,
-        PurchaseOrderId = gr.PurchaseOrderId, // thường NULL với Production
+        PurchaseOrderId = gr.PurchaseOrderId,
         WarehouseId = gr.WarehouseId,
         ReceiptType = gr.ReceiptType,
         Status = gr.Status,
@@ -667,6 +680,7 @@ public class PurchaseService : IPurchaseService
             UpdatedAt = p.UpdatedAt
         }).ToList()
     };
+
     private static GoodsReceiptDto MapPurchaseGRToDto(GoodsReceipt gr) => new()
     {
         Id = gr.Id,
@@ -679,20 +693,18 @@ public class PurchaseService : IPurchaseService
         UpdatedAt = gr.UpdatedAt,
 
         Items = gr.Items == null
-        ? new List<GoodsReceiptItemDto>()
-        : gr.Items.Select(i => new GoodsReceiptItemDto
-        {
-            Id = i.Id,
-            ProductId = i.ProductId,
-            Quantity = i.Quantity,
-            Received_Qty = i.Received_Qty,
-            Status = i.Status,
-            CreatedAt = i.CreatedAt,
-            UpdatedAt = i.UpdatedAt
-        }).ToList()
+            ? new List<GoodsReceiptItemDto>()
+            : gr.Items.Select(i => new GoodsReceiptItemDto
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                Quantity = i.Quantity,
+                Received_Qty = i.Received_Qty,
+                Status = i.Status,
+                CreatedAt = i.CreatedAt,
+                UpdatedAt = i.UpdatedAt
+            }).ToList()
     };
-
-
 }
 
 // ========================

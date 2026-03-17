@@ -16,8 +16,8 @@ namespace Wms.Application.DTOS.Purchase
         public int Quantity { get; set; }
         public int Receipt_Qty { get; set; }
         public string? LotCode { get; set; }
-        public DateTime ExpiryDate { get; set; }
-            
+        public DateTime? ExpiryDate { get; set; }           // ← nullable
+        public DateTime? ManufacturingDate { get; set; }    // ← thêm + nullable
         public GRIStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

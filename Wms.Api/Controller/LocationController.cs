@@ -2,8 +2,9 @@
     using Wms.Api.Middlewares;
     using Wms.Application.DTOS.Warehouse;
     using Wms.Application.Interfaces.Services.Warehouse;
+using Wms.Domain.Enums.location;
 
-    [ApiController]
+[ApiController]
     [Route("api/warehouses/{warehouseId:guid}/[controller]")]
     public class LocationsController : ControllerBase
     {
@@ -29,9 +30,9 @@
         // LIST BY WAREHOUSE
         [HttpGet]
         [HasPermission("location.view")]
-        public async Task<IActionResult> List([FromRoute] Guid warehouseId)
+        public async Task<IActionResult> List([FromRoute] Guid warehouseId, LocationType type)
         {
-            var res = await _service.GetLocationsByWarehouseAsync(warehouseId);
+            var res = await _service.GetLocationsByWarehouseAsync(warehouseId, type);
             return Ok(res);
         }
 

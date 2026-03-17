@@ -13,6 +13,8 @@ namespace Wms.Domain.Entity.Purchase
         public Guid GoodsReceiptId { get; set; }
         public int ProductId {  get; set; }
         public int Quantity { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+        public DateTime? ManufacturingDate { get; set; }
         public int Receipt_Qty { get; set; }
         public GRIStatus Status { get; set; }
 

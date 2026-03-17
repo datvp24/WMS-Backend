@@ -85,7 +85,7 @@ namespace Wms.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Code = table.Column<string>(type: "longtext", nullable: false)
+                    Code = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     productId = table.Column<int>(type: "int", nullable: false),
                     ExpiryDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -833,6 +833,8 @@ namespace Wms.Infrastructure.Migrations
                     GoodsReceiptId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ManufacturingDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     Receipt_Qty = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -1058,15 +1060,21 @@ namespace Wms.Infrastructure.Migrations
                 column: "WarehouseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Locations_Code",
+                name: "UX_Location_Warehouse_Code",
                 table: "Locations",
-                column: "Code",
+                columns: new[] { "WarehouseId", "Code" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Locations_WarehouseId",
-                table: "Locations",
-                column: "WarehouseId");
+                name: "IX_Lot_Product_ExpiryDate",
+                table: "Lots",
+                columns: new[] { "productId", "ExpiryDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "UX_Lot_Product_LotCode",
+                table: "Lots",
+                columns: new[] { "productId", "Code" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Permissions_Code",

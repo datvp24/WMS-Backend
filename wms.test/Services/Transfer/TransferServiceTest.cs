@@ -105,7 +105,6 @@ namespace Wms.Tests.Services.Transfer
 
             _context.Inventories.Add(new InventoryEntity
             {
-                WarehouseId = fromWarehouseId,
                 LocationId = fromLocationId,
                 ProductId = 1,
                 OnHandQuantity = 100,
@@ -184,7 +183,6 @@ namespace Wms.Tests.Services.Transfer
 
             _context.Inventories.Add(new InventoryEntity
             {
-                WarehouseId = Guid.NewGuid(),
                 LocationId = fromLocationId,
                 ProductId = 1,
                 OnHandQuantity = 30,
@@ -285,7 +283,6 @@ namespace Wms.Tests.Services.Transfer
 
             _context.Inventories.Add(new InventoryEntity
             {
-                WarehouseId = fromWarehouseId,
                 LocationId = fromLocationId,
                 ProductId = 1,
                 OnHandQuantity = 100,
@@ -393,7 +390,6 @@ namespace Wms.Tests.Services.Transfer
             // Not enough stock
             _context.Inventories.Add(new InventoryEntity
             {
-                WarehouseId = transfer.FromWarehouseId,
                 LocationId = fromLocationId,
                 ProductId = 1,
                 OnHandQuantity = 50, // Less than required
