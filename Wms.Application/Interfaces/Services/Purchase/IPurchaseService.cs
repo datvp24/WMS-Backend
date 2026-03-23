@@ -9,6 +9,10 @@ public interface IPurchaseService
     Task<PurchaseOrderDto> RejectPOAsync(Guid poId);
     Task<List<PurchaseOrderDto>> GetPOsAsync(int page = 1, int pageSize = 20, string? status = null);
     Task<PurchaseOrderDto> GetPOAsync(Guid poId);
+    Task<ScanReceiveResultDto> ScanPOInfoAsync(string poCode);
+    Task<ScanReceiveResultDto> ConfirmAndReceiveAsync(string poCode);
+    Task<ScanReceiveResultDto> ScanAndProcessAsync(ScanQRPayloadDto payload);
+
     Task<PurchaseOrderDto> GetPOM0Async(Guid poId);
 
 

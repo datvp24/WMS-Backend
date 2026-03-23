@@ -680,6 +680,121 @@ public class PurchaseService : IPurchaseService
             UpdatedAt = p.UpdatedAt
         }).ToList()
     };
+    public async Task<ScanReceiveResultDto> ScanPOInfoAsync(string poCode)
+    {
+        var po = await _db.PurchaseOrders
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Code == poCode.Trim().ToUpper());
+
+        if (po == null)
+            throw new NotFoundException($"Không tìm thấy đơn hàng: {poCode}");
+
+        if (po.Status == "Rejected")
+            throw new BusinessException("PO_REJECTED", "Đơn hàng đã bị từ chối");
+
+        if (po.Status == "Complete")
+            throw new BusinessException("PO_COMPLETED", "Đơn hàng đã hoàn thành");
+
+        // Lấy GR hiện có (nếu đã approve trước đó)
+        var existingGRs = await _db.GoodsReceipts
+            .Include(x => x.Items)
+            .Where(x => x.PurchaseOrderId == po.Id
+                     && x.ReceiptType == ReceiptType.Purchase
+                     && x.Status != Status.Complete)
+            .ToListAsync();
+
+        return new ScanReceiveResultDto
+        {
+            PO = MapPOToDto(po),
+            GoodsReceipts = existingGRs.Select(MapPurchaseGRToDto).ToList(),
+            NeedsApproval = po.Status == "Pending"
+        };
+    }
+
+    /// <summary>
+    /// BƯỚC 2 — Confirm: User đã xác nhận → tự động Approve PO + tạo GR nếu cần.
+    /// POST /api/purchase/scan/{poCode}/confirm
+    /// </summary>
+    public async Task<ScanReceiveResultDto> ConfirmAndReceiveAsync(string poCode)
+    {
+        var po = await _db.PurchaseOrders
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Code == poCode.Trim().ToUpper());
+
+        if (po == null)
+            throw new NotFoundException($"Không tìm thấy đơn hàng: {poCode}");
+
+        if (po.Status == "Rejected")
+            throw new BusinessException("PO_REJECTED", "Đơn hàng đã bị từ chối");
+
+        if (po.Status == "Complete")
+            throw new BusinessException("PO_COMPLETED", "Đơn hàng đã hoàn thành");
+
+        // Chỉ approve nếu còn Pending
+        if (po.Status == "Pending")
+        {
+            po.Status = "Approve";
+            po.ApprovedAt = DateTime.UtcNow;
+            po.ApprovedBy = _jwt.GetUserId();
+            po.UpdatedAt = DateTime.UtcNow;
+
+            foreach (var poi in po.Items.Where(i => i.Status == Status.Pending))
+            {
+                poi.Status = Status.Approve;
+                poi.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Tạo GR theo từng kho (giống ApprovePOAsync)
+            var grouped = po.Items
+                .Where(i => i.Status == Status.Approve)
+                .GroupBy(i => i.WarehouseId);
+
+            foreach (var group in grouped)
+            {
+                var gr = new GoodsReceipt
+                {
+                    Id = Guid.NewGuid(),
+                    PurchaseOrderId = po.Id,
+                    WarehouseId = group.Key,
+                    Code = GenerateGRCode(),
+                    Status = Status.Pending,
+                    ReceiptType = ReceiptType.Purchase,
+                    CreatedAt = DateTime.UtcNow,
+                    Items = group.Select(poi => new GoodsReceiptItem
+                    {
+                        Id = Guid.NewGuid(),
+                        ProductId = poi.ProductId,
+                        Quantity = poi.Quantity,
+                        POIid = poi.Id,
+                        Received_Qty = 0,
+                        CreatedAt = DateTime.UtcNow
+                    }).ToList()
+                };
+                _db.GoodsReceipts.Add(gr);
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
+        // Lấy tất cả GR chưa hoàn thành
+        var activeGRs = await _db.GoodsReceipts
+            .Include(x => x.Items)
+            .Where(x => x.PurchaseOrderId == po.Id
+                     && x.ReceiptType == ReceiptType.Purchase
+                     && x.Status != Status.Complete)
+            .ToListAsync();
+
+        if (!activeGRs.Any())
+            throw new BusinessException("ALL_GR_COMPLETED", "Tất cả phiếu nhập đã hoàn thành");
+
+        return new ScanReceiveResultDto
+        {
+            PO = MapPOToDto(po),
+            GoodsReceipts = activeGRs.Select(MapPurchaseGRToDto).ToList(),
+            NeedsApproval = false
+        };
+    }
+
 
     private static GoodsReceiptDto MapPurchaseGRToDto(GoodsReceipt gr) => new()
     {
@@ -705,6 +820,109 @@ public class PurchaseService : IPurchaseService
                 UpdatedAt = i.UpdatedAt
             }).ToList()
     };
+    public async Task<ScanReceiveResultDto> ScanAndProcessAsync(ScanQRPayloadDto payload)
+    {
+        // ── Validate warehouse ──────────────────────────────────────────
+        foreach (var item in payload.Items)
+        {
+            var warehouse = await _db.Warehouses
+                .FirstOrDefaultAsync(w => w.Id == item.WarehouseId);
+
+            if (warehouse == null)
+                throw new BusinessException("WAREHOUSE_NOT_FOUND", "Kho nhận không tồn tại");
+
+            if (warehouse.WarehouseType != WarehouseType.RawMaterial)
+                throw new BusinessException(
+                    "INVALID_WAREHOUSE_TYPE",
+                    $"Kho \"{warehouse.Name}\" không phải kho nguyên vật liệu"
+                );
+        }
+
+        var strategy = _db.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+
+            try
+            {
+                // ── BƯỚC 1: Tạo PO ────────────────────────────────────────
+                var po = new PurchaseOrder
+                {
+                    Id = Guid.NewGuid(),
+                    Code = GeneratePOCode(),
+                    SupplierId = payload.SupplierId,
+                    CreateBy = _jwt.GetUserId(),
+                    Status = "Approve",                  // Tạo thẳng Approve
+                    ApprovedAt = DateTime.UtcNow,
+                    ApprovedBy = _jwt.GetUserId(),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    Items = payload.Items.Select(i => new PurchaseOrderItem
+                    {
+                        Id = Guid.NewGuid(),
+                        ProductId = i.ProductId,
+                        WarehouseId = i.WarehouseId,
+                        Quantity = i.Quantity,
+                        Price = i.Price,
+                        Status = Status.Approve,          // Approve luôn
+                        Received_qty = 0,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    }).ToList()
+                };
+
+                _db.PurchaseOrders.Add(po);
+
+                // ── BƯỚC 2: Tạo GR theo từng kho ─────────────────────────
+                var groupedItems = po.Items.GroupBy(i => i.WarehouseId);
+                var createdGRs = new List<GoodsReceipt>();
+
+                foreach (var group in groupedItems)
+                {
+                    var gr = new GoodsReceipt
+                    {
+                        Id = Guid.NewGuid(),
+                        PurchaseOrderId = po.Id,
+                        WarehouseId = group.Key,
+                        Code = GenerateGRCode(),
+                        Status = Status.Pending,
+                        ReceiptType = ReceiptType.Purchase,
+                        CreatedAt = DateTime.UtcNow,
+                        Items = group.Select(poi => new GoodsReceiptItem
+                        {
+                            Id = Guid.NewGuid(),
+                            ProductId = poi.ProductId,
+                            GoodsReceiptId = Guid.Empty,  // EF set
+                            Quantity = poi.Quantity,
+                            POIid = poi.Id,
+                            Received_Qty = 0,
+                            CreatedAt = DateTime.UtcNow
+                        }).ToList()
+                    };
+
+                    _db.GoodsReceipts.Add(gr);
+                    createdGRs.Add(gr);
+                }
+
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new ScanReceiveResultDto
+                {
+                    PO = MapPOToDto(po),
+                    GoodsReceipts = createdGRs.Select(MapPurchaseGRToDto).ToList(),
+                    NeedsApproval = false
+                };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
+    }
+
 }
 
 // ========================

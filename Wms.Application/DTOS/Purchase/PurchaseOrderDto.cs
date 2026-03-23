@@ -13,3 +13,31 @@ public class PurchaseOrderDto
     public DateTime? ApprovedAt { get; set; } // Nullable vì chưa approve
     public List<PurchaseOrderItemDto> Items { get; set; } = new();
 }
+public class ScanQRPayloadDto
+{
+    /// <summary>
+    /// Nhà cung cấp
+    /// </summary>
+    public int SupplierId { get; set; }
+
+    /// <summary>
+    /// Danh sách sản phẩm trong đơn hàng
+    /// </summary>
+    public List<ScanQRItemDto> Items { get; set; } = new();
+}
+
+public class ScanQRItemDto
+{
+    public int ProductId { get; set; }
+    public Guid WarehouseId { get; set; }
+    public int Quantity { get; set; }
+    public decimal Price { get; set; }
+}
+public class ScanReceiveResultDto
+{
+    public PurchaseOrderDto PO { get; set; } = null!;
+    public List<GoodsReceiptDto> GoodsReceipts { get; set; } = new();
+
+    /// <summary>true = PO còn Pending, cần user confirm để approve</summary>
+    public bool NeedsApproval { get; set; }
+}

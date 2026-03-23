@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Wms.Application.DTOS.Purchase;
-using Wms.Application.Interfaces.Services.Purchase;
 using Wms.Api.Middlewares;
+using Wms.Application.DTOS.Purchase;
+using Wms.Application.Exceptions;
+using Wms.Application.Interfaces.Services.Purchase;
+using Wms.Application.Services.Purchase;
 using Wms.Domain.Entity.Purchase;
 
 namespace Wms.Api.Controllers;
@@ -20,6 +22,64 @@ public class PurchaseController : ControllerBase
     // ========================
     // PURCHASE ORDER
     // ========================
+    [HttpGet("scan/{poCode}")]
+    public async Task<IActionResult> ScanPOInfo(string poCode)
+    {
+        try
+        {
+            var result = await _purchaseService.ScanPOInfoAsync(poCode);
+            return Ok(result);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { code = ex.Code, message = ex.Message });
+        }
+    }
+    [HttpPost("scan-and-process")]
+    public async Task<IActionResult> ScanAndProcess([FromBody] ScanQRPayloadDto payload)
+    {
+        try
+        {
+            var result = await _purchaseService.ScanAndProcessAsync(payload);
+            return Ok(result);
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { code = ex.Code, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+
+
+    /// <summary>
+    /// User đã xác nhận → tự Approve PO (nếu cần) + trả GR để kiểm đếm.
+    /// POST /api/purchase/scan/{poCode}/confirm
+    /// </summary>
+    [HttpPost("scan/{poCode}/confirm")]
+    public async Task<IActionResult> ConfirmScanReceive(string poCode)
+    {
+        try
+        {
+            var result = await _purchaseService.ConfirmAndReceiveAsync(poCode);
+            return Ok(result);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { code = ex.Code, message = ex.Message });
+        }
+    }
+
 
     [HttpPost("po")]
     [HasPermission("purchase.po.create")]
