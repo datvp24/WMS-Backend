@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Wms.Api.Extensions;
-using Wms.Application.Exceptions;
 using Wms.Application.Mapper.Sales;
 using Wms.Infrastructure.Persistence.Context;
 using Wms.Infrastructure.Seed;
@@ -23,30 +21,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             errorNumbersToAdd: null);
     }));
 
-// Add Services (AuthService, JwtService, PasswordHasher)
 builder.Services.AddAuthServices();
-
-// Add Core Services
 builder.Services.AddControllers();
-
-// Add Application Services
 builder.Services.AddApplicationServices();
-
 builder.Services.AddAutoMapper(typeof(SalesMappingProfile));
-
-// Add JWT Authentication
 builder.Services.AddJwtAuthentication(builder.Configuration);
-
-// Add Authorization
 builder.Services.AddPermissionPolicies();
 builder.Services.AddHttpContextAccessor();
-
-// Add Controllers + Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Add CORS
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("AllowAll", policy =>
@@ -57,8 +42,7 @@ builder.Services.AddCors(opt =>
     });
 });
 
-
-// --- 2. BUILD APP AND MIDDLEWARE PIPELINE ---
+// --- 2. BUILD APP ---
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -72,29 +56,37 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// --- 3. Run Auth Seeders ---
-using (var scope = app.Services.CreateScope())
+// --- 3. Migrate + Seed chạy background, không block startup ---
+_ = Task.Run(async () =>
 {
+    await Task.Delay(3000); // Đợi app bind port xong
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
     int retry = 0;
-    while (retry < 5)
+    while (retry < 10)
     {
         try
         {
             await db.Database.MigrateAsync();
             await AuthSeeder.SeedAsync(db);
             await TechnicalPlasticWarehouseSeeder.SeedAsync(db);
+            logger.LogInformation("✅ DB migration và seed thành công!");
             break;
         }
         catch (Exception ex)
         {
             retry++;
-            logger.LogWarning("DB chưa sẵn sàng, đang thử lại lần {0}... Lỗi: {1}", retry, ex.Message);
+            logger.LogWarning("⚠️ DB chưa sẵn sàng, thử lại lần {0}/10... Lỗi: {1}", retry, ex.Message);
             await Task.Delay(5000);
         }
     }
-}
+
+    if (retry >= 10)
+    {
+        logger.LogError("❌ Không thể kết nối DB sau 10 lần thử. App vẫn chạy nhưng DB chưa sẵn sàng.");
+    }
+});
 
 await app.RunAsync();
