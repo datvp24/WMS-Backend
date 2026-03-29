@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // --- 1. CONFIGURATION ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var serverVersion = new MySqlServerVersion(new Version(8, 0, 30)); // Cố định phiên bản để tránh AutoDetect lỗi
+Console.WriteLine($"==> CONNECTION STRING: {connectionString}");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, serverVersion, mysqlOptions =>
