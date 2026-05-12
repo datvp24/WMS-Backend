@@ -28,6 +28,9 @@ namespace Wms.Domain.Entity.Sales
         Complete = 3,
         Rejected = 4,
         Picking = 5,
+
+        OutOfStock = 6,        // Hết hàng
+        InsufficientStock = 7  // Không đủ hàng
     }
     public enum GIType
     {

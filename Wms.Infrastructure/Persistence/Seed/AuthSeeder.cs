@@ -148,7 +148,7 @@ public static class AuthSeeder
                 RoleId = 1,
                 PermissionId = p.Id
             }).ToList();
-
+ 
             db.RolePermissions.AddRange(adminRolePermissions);
         }
 

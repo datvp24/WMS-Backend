@@ -261,8 +261,6 @@ namespace Wms.Domain.Service.Sales
             if (warehouse == null)
                 throw new Exception("Kho không tồn tại");
 
-            if (warehouse.WarehouseType != WarehouseType.RawMaterial)
-                throw new Exception("Xuất sản xuất chỉ dùng kho nguyên liệu");
 
             var gi = new GoodsIssue
             {
@@ -1077,7 +1075,30 @@ namespace Wms.Domain.Service.Sales
 
             return code;
         }
+        public async Task UpdateGIStatusAsync(Guid giId, GIStatus status)
+        {
+            var gi = await _dbContext.GoodsIssues
+                .FirstOrDefaultAsync(x => x.Id == giId);
 
+            if (gi == null)
+                throw new Exception("GoodsIssue không tồn tại");
+
+            gi.Status = status;
+            gi.UpdateAt = DateTime.UtcNow;
+
+            // update item luôn cho đồng bộ
+            var items = await _dbContext.GoodsIssueItems
+                .Where(x => x.GoodsIssueId == giId)
+                .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.Status = status;
+                item.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
         public async Task<SalesOrderDto> RejectSOAsync(Guid soId)
         {
             var entity = await _dbContext.SalesOrders

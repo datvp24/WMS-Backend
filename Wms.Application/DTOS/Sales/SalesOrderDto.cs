@@ -27,6 +27,10 @@ public class SalesOrderLDto
     public List<GoodsIssueDto> GoodsIssues { get; set; } = new();
 }
 // DTO dùng để trả về thông tin SO chi tiết
+public class UpdateGIStatusDto
+{
+    public GIStatus Status { get; set; }
+}
 public class SalesOrderDto
 {
     public Guid Id { get; set; }

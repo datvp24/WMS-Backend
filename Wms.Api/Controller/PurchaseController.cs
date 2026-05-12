@@ -5,6 +5,7 @@ using Wms.Application.Exceptions;
 using Wms.Application.Interfaces.Services.Purchase;
 using Wms.Application.Services.Purchase;
 using Wms.Domain.Entity.Purchase;
+using Wms.Infrastructure.Persistence.Context;
 
 namespace Wms.Api.Controllers;
 
@@ -13,10 +14,13 @@ namespace Wms.Api.Controllers;
 public class PurchaseController : ControllerBase
 {
     private readonly IPurchaseService _purchaseService;
+    private readonly AppDbContext _db;
 
-    public PurchaseController(IPurchaseService purchaseService)
+    public PurchaseController(IPurchaseService purchaseService, AppDbContext dbContext)
     {
         _purchaseService = purchaseService;
+        _db = dbContext;
+
     }
 
     // ========================
@@ -226,6 +230,19 @@ public class PurchaseController : ControllerBase
         return gr;
     }
 
+    // ── DTO ──────────────────────────────────────────────────────────
+    public class UpdateGRStatusDto
+    {
+        public Status Status { get; set; }
+    }
+
+    // ── Endpoint ─────────────────────────────────────────────────────
+    [HttpPatch("gr/{grId}/status")]
+    public async Task<IActionResult> UpdateGRStatus(Guid grId, [FromBody] UpdateGRStatusDto dto)
+    {
+        await _purchaseService.UpdateGRStatusAsync(grId, dto.Status);
+        return Ok();
+    }
     [HttpPost("gr")]
     [HasPermission("purchase.gr.create")]
     public async Task<ActionResult<GoodsReceiptDto>> CreateGR([FromBody] GoodsReceiptDto dto)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Wms.Application.DTOS.Sales;
 using Wms.Application.Interfaces.Service.Sales;
 using Wms.Application.Interfaces.Services.Sales;
 using Wms.Domain.Entity.Sales;
+using Wms.Infrastructure.Persistence.Context;
 
 namespace Wms.Api.Controllers
 {
@@ -15,10 +17,20 @@ namespace Wms.Api.Controllers
     public class SalesOrderController : ControllerBase
     {
         private readonly ISalesOrderService _salesOrderService;
+        private readonly AppDbContext _dbContext;
 
-        public SalesOrderController(ISalesOrderService salesOrderService)
+        public SalesOrderController(
+            ISalesOrderService salesOrderService,
+            AppDbContext dbContext)
         {
             _salesOrderService = salesOrderService;
+            _dbContext = dbContext;
+        }
+        [HttpPut("goods-issue/{id}/status")]
+        public async Task<IActionResult> UpdateGIStatus(Guid id, [FromBody] UpdateGIStatusDto dto)
+        {
+            await _salesOrderService.UpdateGIStatusAsync(id, dto.Status);
+            return Ok();
         }
 
         // CREATE
@@ -107,6 +119,22 @@ namespace Wms.Api.Controllers
         {
             await _salesOrderService.Picking(dto);
             return Ok();
+        }
+        [HttpGet("getall")]
+        public async Task<IActionResult> GetAll()
+        {
+            var data = await _dbContext.Warehouses
+                .AsNoTracking()
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Name,
+                    x.WarehouseType,
+                    x.Status
+                })
+                .ToListAsync();
+
+            return Ok(data);
         }
         // REJECT
         [HttpPost("{id}/reject")]

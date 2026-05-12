@@ -261,8 +261,8 @@ public class PurchaseService : IPurchaseService
             throw new BusinessRuleException("WarehouseId is required");
 
         var warehousecheck = _db.Warehouses.FirstOrDefault(s => s.Id == dto.WarehouseId);
-        if (warehousecheck.WarehouseType != WarehouseType.FinishedGoods)
-            throw new Exception("Chỉ có thể nhập kho thành phẩm");
+        //if (warehousecheck.WarehouseType != WarehouseType.FinishedGoods)
+        //    throw new Exception("Chỉ có thể nhập kho thành phẩm");
 
         var strategy = _db.Database.CreateExecutionStrategy();
 
@@ -795,7 +795,30 @@ public class PurchaseService : IPurchaseService
         };
     }
 
+    public async Task UpdateGRStatusAsync(Guid grId, Status status)
+    {
+        var gr = await _db.GoodsReceipts
+            .FirstOrDefaultAsync(x => x.Id == grId);
 
+        if (gr == null)
+            throw new NotFoundException("GoodsReceipt không tồn tại");
+
+        gr.Status = status;
+        gr.UpdatedAt = DateTime.UtcNow;
+
+        // Đồng bộ các item con
+        var items = await _db.GoodsReceiptItems
+            .Where(x => x.GoodsReceiptId == grId)
+            .ToListAsync();
+
+        foreach (var item in items)
+        {
+            item.UpdatedAt = DateTime.UtcNow;
+            // Nếu muốn set status item theo GRIStatus, map tương ứng ở đây
+        }
+
+        await _db.SaveChangesAsync();
+    }
     private static GoodsReceiptDto MapPurchaseGRToDto(GoodsReceipt gr) => new()
     {
         Id = gr.Id,

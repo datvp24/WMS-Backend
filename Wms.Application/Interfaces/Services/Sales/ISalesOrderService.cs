@@ -11,6 +11,7 @@ namespace Wms.Application.Interfaces.Service.Sales
         Task<SalesOrderDto> CreateSOAsync(SalesOrderDto dto);
         Task<SalesOrderDto> ApproveSOAsync(Guid soId);
         Task<SalesOrderDto> RejectSOAsync(Guid soId);
+        Task UpdateGIStatusAsync(Guid giId, GIStatus status);
         Task<SalesOrderDto> GetSOAsync(Guid soId);
         Task OutgoingStockCount(IssueGoodsDto dto);
         Task<List<GoodsIssueDto>> QueryGoodsIssuesAsync(GoodsIssueQuery1Dto dto);
