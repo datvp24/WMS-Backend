@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Net.WebSockets;
 using Wms.Api.Extensions;
 using Wms.Application.Mapper.Sales;
 using Wms.Infrastructure.Persistence.Context;
 using Wms.Infrastructure.Seed;
+using Wms.Infrastructure.WebSockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +34,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program));
 
+// ✅ Đăng ký WebSocket hub + background worker
+builder.Services.AddSingleton<InventoryWebSocketHub>();
+builder.Services.AddHostedService<InventoryBroadcastWorker>();
+
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("AllowAll", policy =>
@@ -52,14 +58,65 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
+
+// ✅ UseWebSockets phải đặt TRƯỚC app.Map("/ws/...")
+app.UseWebSockets(new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromSeconds(30)
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// --- 3. Migrate + Seed chạy background, không block startup ---
+// ✅ WS endpoint đầy đủ — giữ connection alive và unregister khi đóng
+app.Map("/ws/inventory", async context =>
+{
+    if (!context.WebSockets.IsWebSocketRequest)
+    {
+        context.Response.StatusCode = 400;
+        return;
+    }
+
+    var hub = context.RequestServices.GetRequiredService<InventoryWebSocketHub>();
+    var ws = await context.WebSockets.AcceptWebSocketAsync();
+    var id = hub.Register(ws);
+
+    var logger = context.RequestServices
+        .GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("WS client connected: {Id}", id);
+
+    // ── Giữ connection sống cho đến khi client đóng ──
+    var buffer = new byte[64];
+    try
+    {
+        var result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+        while (!result.CloseStatus.HasValue)
+        {
+            // Client không cần gửi gì — chỉ cần giữ vòng lặp
+            result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+        }
+
+        await ws.CloseAsync(
+            result.CloseStatus.Value,
+            result.CloseStatusDescription,
+            CancellationToken.None);
+    }
+    catch
+    {
+        // Disconnect đột ngột — bỏ qua
+    }
+    finally
+    {
+        hub.Unregister(id);
+        logger.LogInformation("WS client disconnected: {Id}", id);
+    }
+});
+
+// --- 3. Migrate + Seed ---
 _ = Task.Run(async () =>
 {
-    await Task.Delay(3000); // Đợi app bind port xong
+    await Task.Delay(3000);
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -78,14 +135,9 @@ _ = Task.Run(async () =>
         catch (Exception ex)
         {
             retry++;
-            logger.LogWarning("⚠️ DB chưa sẵn sàng, thử lại lần {0}/10... Lỗi: {1}", retry, ex.Message);
+            logger.LogWarning("⚠️ DB chưa sẵn sàng, thử lại {0}/10: {1}", retry, ex.Message);
             await Task.Delay(5000);
         }
-    }
-
-    if (retry >= 10)
-    {
-        logger.LogError("❌ Không thể kết nối DB sau 10 lần thử. App vẫn chạy nhưng DB chưa sẵn sàng.");
     }
 });
 
